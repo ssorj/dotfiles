@@ -1,0 +1,7 @@
+[user]
+	name = Justin Ross
+	email = jross@redhat.com
+[push]
+	default = simple
+[pull]
+	rebase = true
