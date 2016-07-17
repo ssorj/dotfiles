@@ -14,7 +14,7 @@ if [[ $TERM == dumb && $INSIDE_EMACS ]]; then
 fi
 
 alias l="ls -hltrF --color"
-alias gs="git status --short; git branch"
+alias gs="git status --short --branch"
 alias gk="gitk --all"
 alias nicaea="ssh jross@nicaea.usersys.redhat.com"
 alias concordia="ssh jross@concordia.usersys.redhat.com"
