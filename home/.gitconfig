@@ -1,7 +1,9 @@
 [user]
 	name = Justin Ross
-	email = jross@redhat.com
+	email = jross@apache.org
 [push]
 	default = simple
+[branch]
+	autosetuprebase = always
 [pull]
 	rebase = true
