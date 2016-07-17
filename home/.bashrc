@@ -6,6 +6,7 @@ source /usr/share/git-core/contrib/completion/git-prompt.sh
 
 export EDITOR=emacs
 export PATH=$PATH:$HOME/bin
+export PS1='[\u@\h \W$(__git_ps1 " (%s)")]\$ '
 export PYTHONPATH=$HOME/.local/lib/python2.7/site-packages
 
 if [[ $TERM == dumb && $INSIDE_EMACS ]]; then
