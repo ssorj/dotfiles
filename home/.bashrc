@@ -12,7 +12,7 @@ if [[ $TERM == dumb && $INSIDE_EMACS ]]; then
     export TERM=dumb-emacs-ansi COLORTERM=1
 fi
 
-alias l="ls -hltrF"
+alias l="ls -hltrF --color"
 alias gs="git status --short; git branch"
 alias gk="gitk --all"
 alias nicaea="ssh jross@nicaea.usersys.redhat.com"
