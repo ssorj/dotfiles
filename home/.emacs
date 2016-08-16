@@ -55,3 +55,4 @@
 (setenv "PAGER" "cat")
 
 (shell "sh")
+(put 'downcase-region 'disabled nil)
