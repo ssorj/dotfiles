@@ -6,8 +6,10 @@
    - Don't show menu bar
  - Install Chrome
  - Install packages
-   - sudo dnf install emacs git gnome-tweak-tool
+   - sudo dnf install irssi emacs emacs-goodies git gnome-tweak-tool
  - Copy SSH keys
+ - Irssi
+   - "/set completion_char ,"
  - Gnome tweak tool
    - Alternatetab (window based switching)
    - Launch new instance
