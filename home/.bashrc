@@ -23,6 +23,7 @@ alias l="ls -hltrF"
 alias gs="git status --short --branch"
 alias gd="git diff"
 alias gk="gitk --all"
+alias docker="sudo docker"
 alias nicaea="ssh jross@nicaea.usersys.redhat.com"
 alias concordia="ssh jross@concordia.usersys.redhat.com"
 
