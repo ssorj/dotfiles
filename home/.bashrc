@@ -16,9 +16,9 @@ alias ls="ls --color"
 alias l="ls -hltrF"
 alias gs="git status --short --branch"
 alias gd="git diff"
-alias gl="git log -5"
+alias gl="git log --oneline -20"
 alias gk="gitk --all"
+alias s="ack -s --literal --sort-files --ignore-dir bld --ignore-dir build"
 alias docker="sudo docker"
-alias bld="cmake .. -DCMAKE_INSTALL_PREFIX=~/.local && make -j8"
 
 umask 002
