@@ -7,6 +7,7 @@ source /usr/share/git-core/contrib/completion/git-prompt.sh
 export PS1='[\u@\h \W$(__git_ps1 " (%s)")]\$ '
 export EDITOR=emacs
 export PATH=$HOME/bin:$HOME/.local/bin:$HOME/.local/sbin:$HOME/.local/node_modules/.bin:$PATH
+export NODE_PATH=$HOME/.local/lib/node_modules:$NODE_PATH
 
 if [[ $TERM == dumb && $INSIDE_EMACS ]]; then
     export TERM=dumb-emacs-ansi COLORTERM=1
@@ -19,6 +20,15 @@ alias gd="git diff"
 alias gl="git log --oneline -20"
 alias gk="gitk --all"
 alias s="ack -s --literal --sort-files --ignore-dir bld --ignore-dir build"
+
+function f {
+    if [[ -z $1 -o ${1:0:1} = "-" ]]; then
+        find . "$@"
+    else
+        find . -name "$@"
+    fi
+}
+
 alias docker="sudo docker"
 
 umask 002
