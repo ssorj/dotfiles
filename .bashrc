@@ -22,7 +22,7 @@ alias gk="gitk --all"
 alias s="ack -s --literal --sort-files --ignore-dir bld --ignore-dir build"
 
 function f {
-    if [[ -z $1 -o ${1:0:1} = "-" ]]; then
+    if [[ -z $1 ]] || [[ ${1:0:1} = "-" ]]; then
         find . "$@"
     else
         find . -name "$@"
