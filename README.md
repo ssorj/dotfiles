@@ -8,7 +8,7 @@
    - White on black, xterm colors
  - Install Chrome
  - Install packages
-   - sudo dnf install irssi emacs emacs-goodies git gnome-tweak-tool
+   - sudo dnf install irssi emacs emacs-goodies emacs-yaml-mode git gnome-tweak-tool
  - Adjust sudo settings
  - Copy SSH keys
  - Irssi
