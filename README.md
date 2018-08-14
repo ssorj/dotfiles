@@ -20,6 +20,7 @@
    - Swap Ctrl and Caps Lock
  - Gnome keyboard settings
    - Add terminal launcher - Ctl+Super+T
+   - Add emacs launcher - Ctl+Super+E
    - Ctl+Super+N for workspaces
  - Gnome privacy settings
    - Disable screen lock
