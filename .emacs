@@ -1,8 +1,9 @@
 ;; Keyboard shortcuts
-(global-set-key "\C-x;" 'goto-line)
 (global-set-key "\C-c\C-c" 'compile)
 (global-set-key "\C-xw" 'whitespace-cleanup)
 (global-set-key "\C-xt" 'toggle-truncate-lines)
+(global-set-key "\C-xc" 'comment-region)
+(global-set-key "\C-xu" 'uncomment-region)
 
 ;; Disable annoying stuff
 (setq inhibit-startup-message t)
