@@ -19,8 +19,9 @@
    - Show date in clock
    - Swap Ctrl and Caps Lock
  - Gnome keyboard settings
-   - Add terminal launcher - Ctl+Super+T
-   - Add emacs launcher - Ctl+Super+E
+   - Add Chrome launcher - Ctrl+Super+B
+   - Add Emacs launcher - Ctrl+Super+E
+   - Add terminal launcher - Ctrl+Super+T
    - Ctl+Super+N for workspaces
  - Gnome privacy settings
    - Disable screen lock
