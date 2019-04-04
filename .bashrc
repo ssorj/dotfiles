@@ -29,6 +29,12 @@ function f {
     fi
 }
 
+function hpost {
+    curl -H 'Content-type: text/plain' -i -d $2 $1
+}
+
 alias docker="sudo docker"
+
+unset command_not_found_handle
 
 umask 002
