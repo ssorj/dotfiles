@@ -1,3 +1,5 @@
+(package-initialize)
+
 ;; Keyboard shortcuts
 (global-set-key "\C-c\C-c" 'compile)
 (global-set-key "\C-xw" 'whitespace-cleanup)
@@ -58,3 +60,5 @@
 
 (shell "sh")
 (put 'downcase-region 'disabled nil)
+
+(add-hook 'before-save-hook 'delete-trailing-whitespace)
