@@ -20,6 +20,7 @@ alias gd="git diff"
 alias gl="git log --oneline -20"
 alias gk="gitk --all"
 alias s="ack -s --literal --sort-files --ignore-dir bld --ignore-dir build"
+alias p="pwd"
 
 function f {
     if [[ -z $1 ]] || [[ ${1:0:1} = "-" ]]; then

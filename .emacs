@@ -1,3 +1,6 @@
+(require 'package)
+(add-to-list 'package-archives
+             '("melpa-stable" . "https://stable.melpa.org/packages/"))
 (package-initialize)
 
 ;; Keyboard shortcuts
@@ -40,13 +43,14 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(ansi-color-names-vector ["#212526" "#ff4b4b" "#b4fa70" "#fce94f" "#729fcf" "#ad7fa8" "#8cc4ff" "#eeeeec"])
+ '(ansi-color-names-vector
+   ["#212526" "#ff4b4b" "#b4fa70" "#fce94f" "#729fcf" "#ad7fa8" "#8cc4ff" "#eeeeec"])
  '(column-number-mode t)
  '(custom-enabled-themes (quote (deeper-blue)))
+ '(menu-bar-mode nil)
  '(scroll-bar-mode nil)
  '(show-paren-mode t)
  '(tool-bar-mode nil)
- '(menu-bar-mode nil)
  '(uniquify-buffer-name-style (quote forward) nil (uniquify))
  '(whitespace-check-indent-whitespace nil))
 (custom-set-faces
@@ -54,7 +58,8 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:family "VL Gothic" :foundry "unknown" :slant normal :weight normal :height 150 :width normal)))))
+ '(default ((t (:family "VL Gothic" :foundry "unknown" :slant normal :weight normal :height 150 :width normal))))
+ '(markdown-code-face ((t nil))))
 
 (setenv "PAGER" "cat")
 
