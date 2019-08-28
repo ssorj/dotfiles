@@ -19,7 +19,7 @@ alias gs="git status --short --branch"
 alias gd="git diff"
 alias gl="git log --oneline -20"
 alias gk="gitk --all"
-alias s="ack -s --literal --sort-files --ignore-dir bld --ignore-dir build"
+alias s="ack -s --literal --sort-files --ignore-dir bld --ignore-dir build --ignore-dir .git"
 alias p="pwd"
 
 function f {
