@@ -24,9 +24,9 @@ alias p="pwd"
 
 function f {
     if [[ -z $1 ]] || [[ ${1:0:1} = "-" ]]; then
-        find . "$@"
+        find . -name .git -prune -o -print "$@"
     else
-        find . -name "$@"
+        find . -name .git -prune -o -name "$@"
     fi
 }
 
