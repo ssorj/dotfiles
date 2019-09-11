@@ -15,10 +15,11 @@ fi
 
 alias ls="ls --color"
 alias l="ls -hltrF"
-alias gs="git status --short --branch"
 alias gd="git diff"
-alias gl="git log --oneline -20"
 alias gk="gitk --all"
+alias gl="git log --oneline -20"
+alias gp="git pull --autostash"
+alias gs="git status --short --branch"
 alias s="ack -s --literal --sort-files --ignore-dir bld --ignore-dir build --ignore-dir .git"
 alias p="pwd"
 
@@ -30,11 +31,8 @@ function f {
     fi
 }
 
-function hpost {
-    curl -H 'Content-type: text/plain' -i -d $2 $1
-}
-
 alias docker="sudo docker"
+alias kc="kubectl"
 
 unset command_not_found_handle
 
