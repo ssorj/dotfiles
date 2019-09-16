@@ -24,10 +24,18 @@ alias s="ack -s --literal --sort-files --ignore-dir bld --ignore-dir build --ign
 alias p="pwd"
 
 function f {
-    if [[ -z $1 ]] || [[ ${1:0:1} = "-" ]]; then
-        find . -name .git -prune -o -print "$@"
+    if (( $# == 0 )); then
+        find . -name .git -prune -o -print
+    elif (( $# == 1 )); then
+        if [[ -d $1 ]]; then
+            find "$1" -name .git -prune -o -print
+        else
+            find . -name .git -prune -o -name "*${1}*" -print
+        fi
+    elif (( $# == 2 )); then
+        find "$1" -name .git -prune -o -name "*${2}*" -print
     else
-        find . -name .git -prune -o -name "$@"
+        return 1;
     fi
 }
 
