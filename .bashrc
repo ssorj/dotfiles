@@ -22,6 +22,8 @@ alias gp="git pull --autostash"
 alias gs="git status --short --branch"
 alias s="ack -s --literal --sort-files --ignore-dir bld --ignore-dir build --ignore-dir .git"
 alias p="pwd"
+alias j="jobs"
+alias m="make"
 
 function f {
     if (( $# == 0 )); then
