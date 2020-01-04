@@ -15,7 +15,7 @@ fi
 
 alias ls="ls --color"
 alias l="ls -hltrF"
-alias gd="git diff"
+alias gd="git diff --minimal"
 alias gk="gitk --all"
 alias gl="git log --oneline -20"
 alias gp="git pull --autostash"
