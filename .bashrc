@@ -13,17 +13,18 @@ if [[ $TERM == dumb && $INSIDE_EMACS ]]; then
     export TERM=dumb-emacs-ansi COLORTERM=1
 fi
 
-alias ls="ls --color"
+alias j="jobs"
 alias l="ls -hltrF"
+alias ls="ls --color"
+alias m="make"
+alias p="pwd"
+alias s="ack -s --literal --sort-files --ignore-dir bld --ignore-dir build --ignore-dir .git"
+
 alias gd="git diff --minimal"
 alias gk="gitk --all"
 alias gl="git log --oneline -20"
 alias gp="git pull --autostash"
 alias gs="git status --short --branch"
-alias s="ack -s --literal --sort-files --ignore-dir bld --ignore-dir build --ignore-dir .git"
-alias p="pwd"
-alias j="jobs"
-alias m="make"
 
 function f {
     if (( $# == 0 )); then
@@ -43,6 +44,7 @@ function f {
 
 alias docker="sudo docker"
 alias kc="kubectl"
+alias py="python3"
 
 unset command_not_found_handle
 
