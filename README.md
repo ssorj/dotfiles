@@ -8,7 +8,7 @@
    - White on black, xterm colors
  - Install Chrome
  - Install packages
-   - sudo dnf install irssi emacs emacs-goodies emacs-yaml-mode git gitk gnome-tweak-tool docker ack svn python3-sphinx asciidoctor
+   - sudo dnf install irssi emacs emacs-goodies emacs-yaml-mode git gitk gnome-tweak-tool docker ack svn python3-sphinx asciidoctor vlgothic-fonts
  - Adjust sudo settings
  - Copy SSH keys
  - Irssi
@@ -22,7 +22,7 @@
    - Add Chrome launcher - Ctrl+Super+B
    - Add Emacs launcher - Ctrl+Super+E
    - Add terminal launcher - Ctrl+Super+T
-   - Ctl+Super+N for workspaces
+   - Super+N for workspaces
  - Gnome privacy settings
    - Disable screen lock
    - Auto delete trash and temp files
