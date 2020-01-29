@@ -44,6 +44,7 @@ function f {
 
 alias docker="sudo docker"
 alias kc="kubectl"
+alias mk="minikube"
 alias py="python3"
 
 unset command_not_found_handle
