@@ -7,7 +7,7 @@ source /usr/share/git-core/contrib/completion/git-prompt.sh
 export PS1='[\u@\h \W$(__git_ps1 " (%s)")]\$ '
 export EDITOR=emacs
 export PATH=$HOME/bin:$HOME/.local/bin:$HOME/.local/sbin:$HOME/.local/node_modules/.bin:$PATH
-export NODE_PATH=$HOME/.local/lib/node_modules:$NODE_PATH
+export NODE_PATH=$HOME/.local/lib/node_modules:/usr/lib/node_modules:$NODE_PATH
 
 if [[ $TERM == dumb && $INSIDE_EMACS ]]; then
     export TERM=dumb-emacs-ansi COLORTERM=1
