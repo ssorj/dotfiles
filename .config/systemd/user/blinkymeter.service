@@ -1,0 +1,8 @@
+[Unit]
+Description=Blinky Meter
+
+[Service]
+ExecStart=%h/bin/blinkymeter
+
+[Install]
+WantedBy=default.target

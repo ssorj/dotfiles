@@ -48,6 +48,7 @@
  '(column-number-mode t)
  '(custom-enabled-themes (quote (deeper-blue)))
  '(menu-bar-mode nil)
+ '(same-window-buffer-names (quote ("sh" "sh2" "sh3" "sh4")))
  '(scroll-bar-mode nil)
  '(show-paren-mode t)
  '(tool-bar-mode nil)
@@ -67,3 +68,8 @@
 (put 'downcase-region 'disabled nil)
 
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
+
+;; https://emacs.stackexchange.com/questions/28909/how-i-can-open-shell-in-current-buffer/28924#28924
+;; (add-to-list 'display-buffer-alist
+;;              '(,(rx bos "sh[0-9]")
+;;                display-buffer-same-window))
