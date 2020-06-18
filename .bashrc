@@ -4,7 +4,8 @@ fi
 
 source /usr/share/git-core/contrib/completion/git-prompt.sh
 
-export PS1='[\u@\h \W$(__git_ps1 " (%s)")]\$ '
+#export PS1='\n\[\e[33m\]\w\[\e[m\]$(__git_ps1 " (%s)")\[\e[36m\]\$\[\e[m\] '
+export PS1='\n\[\e[33m\]\w\[\e[m\]\[\e[36m\]\$\[\e[m\] '
 export EDITOR=emacs
 export PATH=$HOME/bin:$HOME/.local/bin:$HOME/.local/sbin:$HOME/.local/node_modules/.bin:$PATH
 export NODE_PATH=$HOME/.local/lib/node_modules:/usr/lib/node_modules:$NODE_PATH
@@ -18,6 +19,7 @@ alias l="ls -hltrF"
 alias ls="ls --color"
 alias m="make"
 alias p="pwd"
+alias py="python3"
 alias s="ack -s --literal --sort-files --ignore-dir bld --ignore-dir build --ignore-dir .git"
 
 alias gd="git diff --minimal"
@@ -42,10 +44,19 @@ function f {
     fi
 }
 
-alias docker="sudo docker"
-alias kc="kubectl"
 alias mk="minikube"
-alias py="python3"
+alias sk="skupper"
+
+alias kc="kubectl"
+alias kcd="kubectl get deployments"
+alias kcp="kubectl get pods"
+alias kcs="kubectl get services"
+alias kcl="kubectl logs"
+alias kce="kubectl exec"
+
+function kcsh {
+    kubectl exec -it "$1" -- /bin/bash
+}
 
 unset command_not_found_handle
 

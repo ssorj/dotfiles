@@ -4,11 +4,10 @@
 (package-initialize)
 
 ;; Keyboard shortcuts
-(global-set-key "\C-c\C-c" 'compile)
-(global-set-key "\C-xw" 'whitespace-cleanup)
-(global-set-key "\C-xt" 'toggle-truncate-lines)
-(global-set-key "\C-xc" 'comment-region)
-(global-set-key "\C-xu" 'uncomment-region)
+(global-set-key (kbd "C-c t") #'toggle-truncate-lines)
+(global-set-key (kbd "C-c c") #'comment-region)
+(global-set-key (kbd "C-c u") #'uncomment-region)
+(global-set-key (kbd "C-c s") #'sort-lines)
 
 ;; Disable annoying stuff
 (setq inhibit-startup-message t)
@@ -69,7 +68,13 @@
 
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
+;; //-style comments
+(add-hook 'c-mode-hook (lambda () (c-toggle-comment-style -1)))
+
 ;; https://emacs.stackexchange.com/questions/28909/how-i-can-open-shell-in-current-buffer/28924#28924
 ;; (add-to-list 'display-buffer-alist
 ;;              '(,(rx bos "sh[0-9]")
 ;;                display-buffer-same-window))
+
+(set-face-attribute 'comint-highlight-prompt nil
+                    :inherit nil)
