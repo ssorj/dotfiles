@@ -3,78 +3,78 @@
              '("melpa-stable" . "https://stable.melpa.org/packages/"))
 (package-initialize)
 
+(setq custom-file "~/.emacs.d/custom.el")
+(load custom-file)
+
+(load-theme 'deeper-blue)
+(set-face-attribute 'default nil :family "VL Gothic" :height 150)
+
+(menu-bar-mode -1)
+(scroll-bar-mode -1)
+(tool-bar-mode -1)
+(show-paren-mode t)
+(column-number-mode t)
+(global-subword-mode t)
+
+(setq inhibit-startup-message t)
+(setq uniquify-buffer-name-style 'forward)
+
+(put 'downcase-region 'disabled nil)
+(put 'erase-buffer 'disabled nil)
+(put 'narrow-to-region 'disabled nil)
+
 ;; Keyboard shortcuts
+
 (global-set-key (kbd "C-c t") #'toggle-truncate-lines)
 (global-set-key (kbd "C-c c") #'comment-region)
 (global-set-key (kbd "C-c u") #'uncomment-region)
 (global-set-key (kbd "C-c s") #'sort-lines)
 
-;; Disable annoying stuff
-(setq inhibit-startup-message t)
-(put 'erase-buffer 'disabled nil)
-(put 'narrow-to-region 'disabled nil)
-
 ;; Whitespace
-(setq-default indent-tabs-mode nil
-              c-basic-offset 4
-              c-default-style "linux")
+
+(add-hook 'before-save-hook 'delete-trailing-whitespace)
+(setq whitespace-check-indent-whitespace nil)
 
 ;; Backups
+
 (setq backup-directory-alist '(("." . "~/.emacs.d/backups"))
       delete-old-versions t
       kept-new-versions 6
       kept-old-versions 2
       version-control t)
 
-(load-file "~/.emacs.d/doc-mode.el")
-(load-file "~/.emacs.d/markdown-mode.el")
+;; Python
 
-(autoload 'markdown-mode "markdown-mode"
-  "Major mode for editing Markdown files" t)
-(autoload 'doc-mode "doc-mode")
+;; python-indent-offset
 
-(add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
-(add-to-list 'auto-mode-alist '("\\.adoc\\'" . doc-mode))
+;; C and C++
 
-;; (c-subword-mode 1)
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(ansi-color-names-vector
-   ["#212526" "#ff4b4b" "#b4fa70" "#fce94f" "#729fcf" "#ad7fa8" "#8cc4ff" "#eeeeec"])
- '(column-number-mode t)
- '(custom-enabled-themes (quote (deeper-blue)))
- '(menu-bar-mode nil)
- '(same-window-buffer-names (quote ("sh" "sh2" "sh3" "sh4")))
- '(scroll-bar-mode nil)
- '(show-paren-mode t)
- '(tool-bar-mode nil)
- '(uniquify-buffer-name-style (quote forward) nil (uniquify))
- '(whitespace-check-indent-whitespace nil))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(default ((t (:family "VL Gothic" :foundry "unknown" :slant normal :weight normal :height 150 :width normal))))
- '(markdown-code-face ((t nil))))
-
-(setenv "PAGER" "cat")
-
-(shell "sh")
-(put 'downcase-region 'disabled nil)
-
-(add-hook 'before-save-hook 'delete-trailing-whitespace)
-
-;; //-style comments
+(setq-default indent-tabs-mode nil
+              c-basic-offset 4
+              c-default-style "linux")
 (add-hook 'c-mode-hook (lambda () (c-toggle-comment-style -1)))
 
-;; https://emacs.stackexchange.com/questions/28909/how-i-can-open-shell-in-current-buffer/28924#28924
-;; (add-to-list 'display-buffer-alist
-;;              '(,(rx bos "sh[0-9]")
-;;                display-buffer-same-window))
+;; Markdown
 
-(set-face-attribute 'comint-highlight-prompt nil
-                    :inherit nil)
+(load-file "~/.emacs.d/markdown-mode.el")
+(autoload 'markdown-mode "markdown-mode")
+(add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
+
+;; AsciiDoc
+
+(load-file "~/.emacs.d/doc-mode.el")
+(autoload 'doc-mode "doc-mode")
+(add-to-list 'auto-mode-alist '("\\.adoc\\'" . doc-mode))
+
+;; Shell
+
+(setenv "PAGER" "cat")
+(shell "sh")
+(defun sh2 () (interactive) (shell "sh2"))
+(defun sh3 () (interactive) (shell "sh3"))
+(defun sh4 () (interactive) (shell "sh4"))
+(setq-default same-window-buffer-names '("sh" "sh2" "sh3" "sh4"))
+
+(set-face-attribute 'comint-highlight-prompt nil :inherit nil)
+(setq ansi-color-names-vector ["black" "tomato" "PaleGreen2" "gold1" "DeepSkyBlue1" "MediumOrchid1" "cyan" "white"])
+(setq ansi-color-map (ansi-color-make-color-map))
