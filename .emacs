@@ -8,6 +8,7 @@
 
 (load-theme 'deeper-blue)
 (set-face-attribute 'default nil :family "VL Gothic" :height 150)
+(set-face-bold-p 'bold nil)
 
 (menu-bar-mode -1)
 (scroll-bar-mode -1)
