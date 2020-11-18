@@ -1,0 +1,9 @@
+[Unit]
+Description=Flapjack
+
+[Service]
+WorkingDirectory=%h/code/flapjack
+ExecStart=%h/code/flapjack/plano serve -p port=60006
+
+[Install]
+WantedBy=default.target

@@ -25,6 +25,7 @@ def install_link(source_file, target_file=None):
 install_link(".bashrc")
 install_link(".config/ghost/config.py")
 install_link(".config/systemd/user/blinkymeter.service")
+install_link(".config/systemd/user/flapjack.service")
 install_link(".emacs")
 install_link(".emacs.d/doc-mode.el")
 install_link(".emacs.d/markdown-mode.el")
