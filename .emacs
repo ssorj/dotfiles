@@ -48,6 +48,9 @@
 
 ;; python-indent-offset
 
+(add-to-list 'auto-mode-alist '("Planofile\\'" . python-mode))
+(add-to-list 'auto-mode-alist '("\\.planofile\\'" . python-mode))
+
 ;; C and C++
 
 (setq-default indent-tabs-mode nil
@@ -71,6 +74,7 @@
 
 (setenv "PAGER" "cat")
 (shell "sh")
+(defun sh () (interactive) (shell "sh"))
 (defun sh2 () (interactive) (shell "sh2"))
 (defun sh3 () (interactive) (shell "sh3"))
 (defun sh4 () (interactive) (shell "sh4"))

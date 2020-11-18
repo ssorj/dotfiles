@@ -19,6 +19,7 @@ alias l="ls -hltrF"
 alias ls="ls --color"
 alias m="make"
 alias p="pwd"
+alias pl="plano"
 alias py="python3"
 alias s="ack -s --literal --sort-files --ignore-dir bld --ignore-dir build --ignore-dir .git"
 
