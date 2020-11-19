@@ -46,8 +46,8 @@
 
 ;; Python
 
-;; python-indent-offset
-
+(setq python-indent-guess-indent-offset t)
+(setq python-indent-guess-indent-offset-verbose nil)
 (add-to-list 'auto-mode-alist '("Planofile\\'" . python-mode))
 (add-to-list 'auto-mode-alist '("\\.planofile\\'" . python-mode))
 
