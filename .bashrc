@@ -24,10 +24,13 @@ alias py="python3"
 alias s="ack -s --literal --sort-files --ignore-dir bld --ignore-dir build --ignore-dir .git"
 
 alias gd="git diff --minimal"
-alias gk="gitk --all"
-alias gl="git log --oneline -20"
+alias gh="ghost"
+alias gl="git log --format='tformat:%C(auto)%h %C(auto)%<(48,trunc)%s %C(blue)%<(12,trunc)%al %<(18,trunc)%cr %C(auto) %D ' -n 20"
 alias gp="git pull --autostash"
 alias gs="git status --short --branch"
+
+alias sc="systemctl"
+alias jc="journalctl"
 
 function f {
     if (( $# == 0 )); then
@@ -42,6 +45,15 @@ function f {
         find "$1" -name .git -prune -o -name "*${2}*" -print
     else
         return 1;
+    fi
+}
+
+function mdcd {
+    if [[ $1 ]]; then
+        mkdir -p $1
+        cd $1
+    else
+        cd $(mktemp -d)
     fi
 }
 

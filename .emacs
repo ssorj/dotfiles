@@ -16,6 +16,7 @@
 (show-paren-mode t)
 (column-number-mode t)
 (global-subword-mode t)
+(which-function-mode t)
 
 (setq inhibit-startup-message t)
 (setq uniquify-buffer-name-style 'forward)
@@ -43,6 +44,23 @@
       kept-new-versions 6
       kept-old-versions 2
       version-control t)
+
+;; Backward delete word (not kill)
+;; https://www.emacswiki.org/emacs/BackwardDeleteWord
+
+(defun delete-word (arg)
+  "Delete characters forward until encountering the end of a word. With argument, do this that many times."
+  (interactive "p")
+  (if (use-region-p)
+      (delete-region (region-beginning) (region-end))
+    (delete-region (point) (progn (forward-word arg) (point)))))
+
+(defun backward-delete-word (arg)
+  "Delete characters backward until encountering the end of a word. With argument, do this that many times."
+  (interactive "p")
+  (delete-word (- arg)))
+
+(global-set-key (read-kbd-macro "<M-DEL>") 'backward-delete-word)
 
 ;; Python
 
