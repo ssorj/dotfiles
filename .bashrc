@@ -25,7 +25,7 @@ alias s="ack -s --literal --sort-files --ignore-dir bld --ignore-dir build --ign
 
 alias gd="git diff --minimal"
 alias gh="ghost"
-alias gl="git log --format='tformat:%C(auto)%h %C(auto)%<(48,trunc)%s %C(blue)%<(12,trunc)%al %<(18,trunc)%cr %C(auto) %D ' -n 20"
+alias gl="git log --format='tformat:%C(auto)%h  %C(blue)%<(8,trunc)%al  %<(14,trunc)%cr  %C(auto)%d %C(auto)%s' -n 20"
 alias gp="git pull --autostash"
 alias gs="git status --short --branch"
 

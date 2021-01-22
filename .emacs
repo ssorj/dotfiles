@@ -31,6 +31,7 @@
 (global-set-key (kbd "C-c c") #'comment-region)
 (global-set-key (kbd "C-c u") #'uncomment-region)
 (global-set-key (kbd "C-c s") #'sort-lines)
+(global-set-key (kbd "C-c p") #'ispell-word)
 
 ;; Whitespace
 
