@@ -4,7 +4,7 @@
 (package-initialize)
 
 (setq custom-file "~/.emacs.d/custom.el")
-(load custom-file)
+(load custom-file :noerror)
 
 (load-theme 'deeper-blue)
 (set-face-attribute 'default nil :family "VL Gothic" :height 150)
