@@ -32,6 +32,8 @@ alias gs="git status --short --branch"
 alias sc="systemctl"
 alias jc="journalctl"
 
+alias gdbt="gdb -ex run -ex 'thread apply all bt' -ex 'set confirm off' -ex quit --args"
+
 function f {
     if (( $# == 0 )); then
         find . -name .git -prune -o -print
@@ -69,6 +71,18 @@ alias kce="kubectl exec"
 
 function kcsh {
     kubectl exec -it "$1" -- /bin/bash
+}
+
+function kubecfg {
+    if [[ $1 ]]; then
+        if [[ $1 = "-" ]]; then
+            unset KUBECONFIG
+        else
+            export KUBECONFIG="$HOME/.kube/config-$1"
+        fi
+    fi
+
+    echo KUBECONFIG=$KUBECONFIG
 }
 
 unset command_not_found_handle

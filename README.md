@@ -30,3 +30,16 @@
    - Suspend after 2 hours
  - Gnome sound
    - Turn off sound effects
+
+## Fixing switch to workspace
+
+Gnome 3.32 added a feature that broke my favorite keyboard shortcuts.
+This disables the new feature and restores them to working order.
+
+```bash
+$ for i in $(seq 1 9); do
+  gsettings set org.gnome.shell.keybindings switch-to-application-$i '[]'
+done
+```
+
+https://gitlab.gnome.org/GNOME/gnome-shell/-/issues/1828
