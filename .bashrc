@@ -67,7 +67,14 @@ alias kcd="kubectl get deployments"
 alias kcp="kubectl get pods"
 alias kcs="kubectl get services"
 alias kcl="kubectl logs"
-alias kce="kubectl exec"
+
+function kcn {
+    if [[ $1 ]]; then
+        kubectl config set-context --current --namespace "$1"
+    else
+        kubectl config view --minify --output 'jsonpath={..namespace}'; echo
+    fi
+}
 
 function kcsh {
     kubectl exec -it "$1" -- /bin/bash
