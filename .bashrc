@@ -71,9 +71,9 @@ alias kcl="kubectl logs"
 function kcn {
     if [[ $1 ]]; then
         kubectl config set-context --current --namespace "$1"
-    else
-        kubectl config view --minify --output 'jsonpath={..namespace}'; echo
     fi
+
+    kubectl config view --minify --output 'jsonpath={..namespace}'; echo
 }
 
 function kcsh {
