@@ -28,6 +28,7 @@ alias gh="ghost"
 alias gl="git log --format='tformat:%C(auto)%h  %C(blue)%<(8,trunc)%al  %<(14,trunc)%cr  %C(auto)%d %C(auto)%s' -n 20"
 alias gp="git pull --autostash"
 alias gs="git status --short --branch"
+alias gwip="git commit -am WIP"
 
 alias sc="systemctl"
 alias jc="journalctl"
