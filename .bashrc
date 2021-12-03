@@ -23,6 +23,7 @@ alias pl="plano"
 alias py="python3"
 alias s="ack -s --literal --sort-files --ignore-dir bld --ignore-dir build --ignore-dir .git"
 
+alias gb="git branch"
 alias gd="git diff --minimal"
 alias gh="ghost"
 alias gl="git log --format='tformat:%C(auto)%h  %C(blue)%<(8,trunc)%al  %<(14,trunc)%cr  %C(auto)%d %C(auto)%s' -n 20"
