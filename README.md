@@ -8,7 +8,7 @@
    - White on black, xterm colors
  - Install Chrome
  - Install packages
-   - sudo dnf install irssi emacs emacs-goodies emacs-yaml-mode git gitk gnome-tweak-tool docker ack svn python3-sphinx asciidoctor vlgothic-fonts podman-docker gitg
+   - sudo dnf install asciidoctor bat emacs emacs-goodies emacs-yaml-mode git gitk gnome-tweak-tool irssi podman-docker python3-sphinx ripgrep svn vlgothic-fonts
  - Adjust sudo settings
  - Copy SSH keys
  - Irssi

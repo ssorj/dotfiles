@@ -14,6 +14,8 @@ if [[ $TERM == dumb && $INSIDE_EMACS ]]; then
     export TERM=dumb-emacs-ansi COLORTERM=1
 fi
 
+alias cat="bat --theme base16 --number"
+
 alias j="jobs"
 alias l="ls -hltrF"
 alias ls="ls --color"
@@ -21,7 +23,7 @@ alias m="make"
 alias p="pwd"
 alias pl="plano"
 alias py="python3"
-alias s="ack -s --literal --sort-files --ignore-dir bld --ignore-dir build --ignore-dir .git"
+alias s="rg"
 
 alias gb="git branch"
 alias gd="git diff --minimal"
@@ -97,3 +99,7 @@ function kubecfg {
 unset command_not_found_handle
 
 umask 002
+
+# Wasmer
+export WASMER_DIR="/home/jross/.wasmer"
+[ -s "$WASMER_DIR/wasmer.sh" ] && source "$WASMER_DIR/wasmer.sh"
