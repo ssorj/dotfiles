@@ -8,7 +8,7 @@
    - White on black, xterm colors
  - Install Chrome
  - Install packages
-   - sudo dnf install asciidoctor bat emacs emacs-goodies emacs-yaml-mode git gitk gnome-tweak-tool irssi podman-docker python3-sphinx ripgrep svn vlgothic-fonts
+   - sudo dnf install asciidoctor bat emacs emacs-goodies emacs-yaml-mode git gitk git-subrepo gnome-tweak-tool irssi podman-docker python3-sphinx python3-yaml ripgrep svn vlgothic-fonts
  - Adjust sudo settings
  - Copy SSH keys
  - Irssi
@@ -43,3 +43,9 @@ done
 ```
 
 https://gitlab.gnome.org/GNOME/gnome-shell/-/issues/1828
+
+## Zoom settings for the big monitor
+
+ - Gnome settings - display scale - 100%
+ - Gnome tweaks - font scaling factor - 1.25
+ - Chrome - default page zoom - 110%
