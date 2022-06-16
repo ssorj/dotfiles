@@ -17,13 +17,14 @@ fi
 alias cat="bat --theme base16 --number"
 
 alias j="jobs"
-alias l="ls -hltrF"
+alias l="ls -l --almost-all --human-readable --no-group --sort time"
 alias ls="ls --color"
 alias m="make"
 alias p="pwd"
 alias pl="plano"
 alias py="python3"
 alias s="rg"
+alias x='echo $?'
 
 alias gb="git branch"
 alias gd="git diff --minimal"
