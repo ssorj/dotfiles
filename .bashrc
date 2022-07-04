@@ -2,12 +2,22 @@ if [[ -f /etc/bashrc ]]; then
     source /etc/bashrc
 fi
 
-source /usr/share/git-core/contrib/completion/git-prompt.sh
+shopt -s failglob
 
-#export PS1='\n\[\e[33m\]\w\[\e[m\]$(__git_ps1 " (%s)")\[\e[36m\]\$\[\e[m\] '
-export PS1='\n\[\e[33m\]\w\[\e[m\]\[\e[36m\]\$\[\e[m\] '
+export PROMPT_COMMAND=_prompt_command
+
+_prompt_command() {
+    local exit_code="$?"
+
+    PS1="\n\033[1;33m\\w\033[1;36m\$\033[0m "
+
+    if [[ $exit_code != 0 ]]; then
+        PS1="\033[1;31mExit: ${exit_code}\033[0m\n${PS1}"
+    fi
+}
+
 export EDITOR=emacs
-export PATH=$HOME/bin:$HOME/.local/bin:$HOME/.local/sbin:$HOME/.local/node_modules/.bin:$PATH
+export PATH=$HOME/bin:$HOME/.local/bin:$HOME/.local/sbin:$HOME/.local/node_modules/.bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:.
 export NODE_PATH=$HOME/.local/lib/node_modules:/usr/lib/node_modules:$NODE_PATH
 
 if [[ $TERM == dumb && $INSIDE_EMACS ]]; then
@@ -30,6 +40,8 @@ alias gd="git diff --minimal"
 alias gl="git log --format='tformat:%C(auto)%h  %C(blue)%<(8,trunc)%al  %<(14,trunc)%cr  %C(auto)%d %C(auto)%s' -n 20"
 alias gp="git pull --autostash"
 alias gs="git status --short --branch"
+
+alias gamend="git commit --amend" # XXX Want to suppress the message edit here
 alias gwip="git commit -am WIP"
 alias gbump="git commit -m 'Bump' --allow-empty"
 
@@ -99,7 +111,3 @@ function kubecfg {
 unset command_not_found_handle
 
 umask 002
-
-# Wasmer
-export WASMER_DIR="/home/jross/.wasmer"
-[ -s "$WASMER_DIR/wasmer.sh" ] && source "$WASMER_DIR/wasmer.sh"
