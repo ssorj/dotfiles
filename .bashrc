@@ -7,12 +7,12 @@ shopt -s failglob
 export PROMPT_COMMAND=_prompt_command
 
 _prompt_command() {
-    local exit_code="$?"
+    local exit_code=$?
 
     PS1="\n\033[1;33m\\w\033[1;36m\$\033[0m "
 
     if [[ $exit_code != 0 ]]; then
-        PS1="\033[1;31mExit: ${exit_code}\033[0m\n${PS1}"
+        PS1="\033[1;31m-> ${exit_code}\033[0m\n${PS1}"
     fi
 }
 
@@ -25,6 +25,7 @@ if [[ $TERM == dumb && $INSIDE_EMACS ]]; then
 fi
 
 alias cat="bat --theme base16 --number"
+alias head="cat -r :25"
 
 alias j="jobs"
 alias l="ls -l --almost-all --human-readable --no-group --sort time"
@@ -84,6 +85,8 @@ alias kcp="kubectl get pods"
 alias kcs="kubectl get services"
 alias kcl="kubectl logs"
 
+alias ht="htop --user --tree --sort-key PID"
+
 function kcn {
     if [[ $1 ]]; then
         kubectl config set-context --current --namespace "$1"
@@ -111,3 +114,6 @@ function kubecfg {
 unset command_not_found_handle
 
 umask 002
+
+bind '"\ep": previous-history' 2> /dev/null
+bind '"\en": next-history' 2> /dev/null

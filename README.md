@@ -6,6 +6,8 @@
    - Don't show menu bar
    - Always hide the scroll bar
    - White on black, xterm colors
+   - Ctrl+C and Ctrl+V for cut and paste
+   -
  - Install Chrome
  - Install packages
    - sudo dnf install asciidoctor bat emacs emacs-goodies emacs-yaml-mode git gitk git-subrepo gnome-tweak-tool irssi podman-docker python3-sphinx python3-yaml ripgrep svn vlgothic-fonts

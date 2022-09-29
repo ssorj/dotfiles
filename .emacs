@@ -17,6 +17,7 @@
 (column-number-mode t)
 (global-subword-mode t)
 (which-function-mode t)
+(electric-pair-mode t)
 
 (setq inhibit-startup-message t)
 (setq uniquify-buffer-name-style 'forward)
