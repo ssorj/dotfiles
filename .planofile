@@ -16,12 +16,17 @@
 # specific language governing permissions and limitations
 # under the License.
 #
-# -*- mode: python; -*-
+# -*- python -*-
 
 @command
 def install():
+    """
+    Install and configure everything
+    """
+
     install_packages()
     install_config()
+    configure_gnome()
 
 @command
 def install_packages():
@@ -31,6 +36,7 @@ def install_packages():
         "emacs",
         "emacs-goodies",
         "emacs-yaml-mode",
+        "fedora-workstation-repositories",
         "git",
         "git-subrepo",
         "gnome-tweak-tool",
@@ -43,6 +49,14 @@ def install_packages():
     ]
 
     run(f"sudo dnf -y install {' '.join(packages)}")
+
+    run("sudo dnf -y config-manager --set-enabled google-chrome")
+
+    try:
+        # This currently fails on arm
+        run("sudo dnf -y install google-chrome-stable")
+    except:
+        pass
 
 @command
 def install_config():
@@ -62,7 +76,6 @@ def install_config():
     with working_dir("home"):
         install_link(".bashrc")
         install_link(".config/ghost/config.py")
-        install_link(".config/systemd/user/blinkymeter.service")
         install_link(".config/systemd/user/flapjack.service")
         install_link(".emacs")
         install_link(".emacs.d/doc-mode.el")
@@ -70,6 +83,16 @@ def install_config():
         install_link(".gitconfig")
         install_link(".npmrc")
         install_link(".terminfo/d/dumb-emacs-ansi")
+
+@command
+def configure_gnome():
+    # Gnome 3.32 added a feature that broke my favorite keyboard shortcuts.
+    # This disables the new feature and restores them to working order.
+    #
+    # https://gitlab.gnome.org/GNOME/gnome-shell/-/issues/1828
+
+    for i in range(1, 10):
+        run(f"gsettings set org.gnome.shell.keybindings switch-to-application-{i} '[]'")
 
 @command
 def clean():
