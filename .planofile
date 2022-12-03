@@ -20,6 +20,32 @@
 
 @command
 def install():
+    install_packages()
+    install_config()
+
+@command
+def install_packages():
+    packages = [
+        "asciidoctor",
+        "bat",
+        "emacs",
+        "emacs-goodies",
+        "emacs-yaml-mode",
+        "git",
+        "git-subrepo",
+        "gnome-tweak-tool",
+        "irssi",
+        "podman-docker",
+        "python-sphinx",
+        "python-yaml",
+        "ripgrep",
+        "vlgothic-fonts",
+    ]
+
+    run(f"sudo dnf -y install {' '.join(packages)}")
+
+@command
+def install_config():
     save_dir = make_temp_dir()
 
     notice("Saving existing files to {}", save_dir)

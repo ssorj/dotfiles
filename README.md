@@ -3,14 +3,11 @@
 ## Manual steps
 
  - Terminal preferences
-   - Don't show menu bar
+   - Don't show the menu bar
    - Always hide the scroll bar
    - White on black, xterm colors
-   - Ctrl+C and Ctrl+V for cut and paste
-   -
+   - Ctrl+V (no Shift) for paste
  - Install Chrome
- - Install packages
-   - sudo dnf install asciidoctor bat emacs emacs-goodies emacs-yaml-mode git gitk git-subrepo gnome-tweak-tool irssi podman-docker python3-sphinx python3-yaml ripgrep svn vlgothic-fonts
  - Adjust sudo settings
  - Copy SSH keys
  - Irssi
@@ -18,8 +15,8 @@
  - Gnome tweak tool
    - Alternatetab (window based switching)
    - Launch new instance
-   - Show date in clock
-   - Swap Ctrl and Caps Lock
+   - Show day of week in clock
+   - Make Caps Lock an additional Ctrl
  - Gnome keyboard settings
    - Add Chrome launcher - Ctrl+Super+B
    - Add Emacs launcher - Ctrl+Super+E
