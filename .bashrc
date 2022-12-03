@@ -24,6 +24,8 @@ if [[ $TERM == dumb && $INSIDE_EMACS ]]; then
     export TERM=dumb-emacs-ansi COLORTERM=1
 fi
 
+export MAKEOPTS="-j$(nproc)"
+
 alias cat="bat --theme base16 --number"
 alias head="cat -r :25"
 
