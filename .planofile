@@ -24,16 +24,9 @@ def install():
 
     notice("Saving existing files to {}", save_dir)
 
-    def install_link(source_file, target_file=None):
-        assert source_file is not None
-
-        if target_file is None:
-            target_file = source_file
-
+    def install_link(source_file):
+        target_file = join(get_home_dir(), source_file)
         source_file = get_absolute_path(source_file)
-
-        if not is_absolute(target_file):
-            target_file = join(get_home_dir(), target_file)
 
         if exists(target_file):
             move(target_file, save_dir)

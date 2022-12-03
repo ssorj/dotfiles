@@ -19,12 +19,11 @@ _prompt_command() {
 export EDITOR=emacs
 export PATH=$HOME/bin:$HOME/.local/bin:$HOME/.local/sbin:$HOME/.local/node_modules/.bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:.
 export NODE_PATH=$HOME/.local/lib/node_modules:/usr/lib/node_modules:$NODE_PATH
+export MAKEOPTS="-j$(nproc)"
 
 if [[ $TERM == dumb && $INSIDE_EMACS ]]; then
     export TERM=dumb-emacs-ansi COLORTERM=1
 fi
-
-export MAKEOPTS="-j$(nproc)"
 
 alias cat="bat --theme base16 --number"
 alias head="cat -r :25"
