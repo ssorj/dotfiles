@@ -92,7 +92,7 @@ def configure_gnome():
     # https://gitlab.gnome.org/GNOME/gnome-shell/-/issues/1828
 
     for i in range(1, 10):
-        run(f"gsettings set org.gnome.shell.keybindings switch-to-application-{i} '[]'")
+        run(f"gsettings set org.gnome.shell.keybindings switch-to-application-{i} '[<Super>{i}]'")
 
 @command
 def clean():
