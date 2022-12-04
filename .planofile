@@ -86,6 +86,8 @@ def install_config():
 
 @command
 def configure_gnome():
+    # Key bindings for switching workspaces
+    #
     # Gnome 3.32 added a feature that broke my favorite keyboard shortcuts.
     # This disables the new feature and restores them to working order.
     #
@@ -94,6 +96,40 @@ def configure_gnome():
     for i in range(1, 10):
         run(f"gsettings set org.gnome.shell.keybindings switch-to-application-{i} '[]'")
         run(f"gsettings set org.gnome.desktop.wm.keybindings switch-to-workspace-{i} '[\"<Super>{i}\"]'")
+
+    # Key bindings for standard launchers
+
+    run("gsettings set org.gnome.settings-daemon.plugins.media-keys www '[\"<Super>B\"]'")
+
+    # Key bindings for custom launchers
+
+    launchers = [
+        {
+            "name": "Terminal",
+            "command": "/usr/bin/gnome-terminal",
+            "binding": "<Super>T",
+        },
+        {
+            "name": "Editor",
+            "command": "/usr/bin/emacs",
+            "binding": "<Super>E",
+        },
+        {
+            "name": "Files",
+            "command": "/usr/bin/nautilus",
+            "binding": "<Super>F",
+        },
+    ]
+
+    paths = [f"/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom{i}/" for i in range(len(launchers))]
+    paths_string = ", ".join(["\"{}\"".format(x) for x in paths])
+    paths_string = "[{}]".format(paths_string)
+
+    run("gsettings set org.gnome.settings-daemon.plugins.media-keys custom-keybindings '{}'".format(paths_string))
+
+    for path, launcher in zip(paths, launchers):
+        for key, value in launcher.items():
+            run("gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:{} {} '{}'".format(path, key, value))
 
 @command
 def clean():
