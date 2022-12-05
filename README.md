@@ -12,25 +12,17 @@
 
 ## Manual steps
 
+ - Configure sudo
  - Terminal preferences
-   - Don't show the menu bar
-   - Always hide the scroll bar
-   - White on black, xterm colors
+   - Hide the scroll bar
    - Ctrl+V (no Shift) for paste
- - Install Chrome
  - Copy SSH keys
  - Irssi
    - "/set completion_char ,"
  - Gnome tweak tool
-   - Alternatetab (window based switching)
    - Launch new instance
    - Show day of week in clock
    - Make Caps Lock an additional Ctrl
- - Gnome keyboard settings
-   - Add Chrome launcher - Ctrl+Super+B
-   - Add Emacs launcher - Ctrl+Super+E
-   - Add terminal launcher - Ctrl+Super+T
-   - Super+N for workspaces
  - Gnome privacy settings
    - Disable screen lock
    - Auto delete trash and temp files
