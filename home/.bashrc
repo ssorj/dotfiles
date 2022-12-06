@@ -9,17 +9,17 @@ export PROMPT_COMMAND=_prompt_command
 _prompt_command() {
     local exit_code=$?
 
-    PS1="\n\033[1;33m\\w\033[1;36m\$\033[0m "
+    PS1="\n\[\033[1;33m\]\\w\[\033[1;36m\]\$\[\033[0m\] "
 
     if [[ $exit_code != 0 ]]; then
-        PS1="\033[1;31m-> ${exit_code}\033[0m\n${PS1}"
+        PS1="\[\033[1;31m\]-> ${exit_code}\[\033[0m\]\n${PS1}"
     fi
 }
 
 export EDITOR=emacs
 export PATH=$HOME/bin:$HOME/.local/bin:$HOME/.local/sbin:$HOME/.local/node_modules/.bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:.
 export NODE_PATH=$HOME/.local/lib/node_modules:/usr/lib/node_modules:$NODE_PATH
-export MAKEOPTS="-j$(nproc)"
+export MAKEOPTS="-j $(nproc)"
 
 if [[ $TERM == dumb && $INSIDE_EMACS ]]; then
     export TERM=dumb-emacs-ansi COLORTERM=1
@@ -36,14 +36,12 @@ alias p="pwd"
 alias pl="plano"
 alias py="python3"
 alias s="rg"
-alias x='echo $?'
 
 alias gd="git diff --minimal"
 alias gl="git log --format='tformat:%C(auto)%h  %C(blue)%<(8,trunc)%al  %<(14,trunc)%cr  %C(auto)%d %C(auto)%s' -n 20"
 alias gp="git pull --autostash"
 alias gs="git status --short --branch"
 
-alias gamend="git commit --amend" # XXX Want to suppress the message edit here
 alias gwip="git commit -am WIP"
 alias gbump="git commit -m 'Bump' --allow-empty"
 
@@ -85,8 +83,6 @@ alias kcd="kubectl get deployments"
 alias kcp="kubectl get pods"
 alias kcs="kubectl get services"
 alias kcl="kubectl logs"
-
-alias ht="htop --user --tree --sort-key PID"
 
 function kcn {
     if [[ $1 ]]; then
