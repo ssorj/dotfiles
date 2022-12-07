@@ -44,6 +44,7 @@ def install_packages():
         "python-sphinx",
         "python-yaml",
         "ripgrep",
+        "webp-pixbuf-loader",
         "vlgothic-fonts",
     ]
 
