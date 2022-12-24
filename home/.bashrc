@@ -29,7 +29,7 @@ alias cat="bat --theme base16 --number"
 alias head="cat -r :25"
 
 alias j="jobs"
-alias l="ls -l --almost-all --human-readable --no-group --sort time"
+alias l="ls -l --almost-all --human-readable --no-group --sort time --reverse"
 alias ls="ls --color"
 alias m="make"
 alias p="pwd"
