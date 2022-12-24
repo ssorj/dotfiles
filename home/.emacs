@@ -1,7 +1,9 @@
 (require 'package)
 (add-to-list 'package-archives
-             '("melpa-stable" . "https://stable.melpa.org/packages/"))
+             '("melpa" . "https://melpa.org/packages/") t)
 (package-initialize)
+
+(require 'rust-mode)
 
 (setq custom-file "~/.emacs.d/custom.el")
 (load custom-file :noerror)
