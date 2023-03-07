@@ -76,12 +76,14 @@ def install_config():
         make_link(target_file, source_file)
 
     with working_dir("home"):
+        # XXX Do for each .<file> instead
         install_link(".bashrc")
         install_link(".config/ghost/config.py")
         install_link(".config/systemd/user/flapjack.service")
         install_link(".emacs")
         install_link(".emacs.d/doc-mode.el")
         install_link(".emacs.d/markdown-mode.el")
+        install_link(".gdbinit")
         install_link(".gitconfig")
         install_link(".npmrc")
         install_link(".terminfo/d/dumb-emacs-ansi")
