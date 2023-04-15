@@ -77,6 +77,7 @@ function mdcd {
 
 alias mk="minikube"
 alias sk="skupper"
+alias skp="skupper --platform podman"
 
 alias kc="kubectl"
 alias kcd="kubectl get deployments"
