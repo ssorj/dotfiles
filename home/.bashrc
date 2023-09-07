@@ -28,8 +28,10 @@ fi
 alias cat="bat --theme base16 --number"
 alias head="cat -r :25"
 
+alias c="clear"
 alias j="jobs"
-alias l="ls -l --almost-all --human-readable --no-group --sort time --reverse"
+alias l="exa --all --long --sort time --no-permissions --no-user"
+alias ll="exa --all --long --sort time"
 alias ls="ls --color"
 alias m="make"
 alias p="pwd"
@@ -80,10 +82,11 @@ alias sk="skupper"
 alias skp="skupper --platform podman"
 
 alias kc="kubectl"
-alias kcd="kubectl get deployments"
-alias kcp="kubectl get pods"
-alias kcs="kubectl get services"
 alias kcl="kubectl logs"
+alias kcd="echo kubectl get deployments; echo; kubectl get deployments"
+alias kcp="echo kubectl get pods; echo; kubectl get pods"
+alias kcs="echo kubectl get services; echo; kubectl get services"
+alias kcsp="echo kubectl get services,pods; echo; kubectl get services,pods"
 
 function kcn {
     if [[ $1 ]]; then

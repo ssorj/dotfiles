@@ -9,7 +9,7 @@
 (load custom-file :noerror)
 
 (load-theme 'deeper-blue)
-(set-face-attribute 'default nil :family "VL Gothic" :height 150)
+(set-face-attribute 'default nil :family "JetBrains Mono" :height 130)
 (set-face-bold-p 'bold nil)
 
 (menu-bar-mode -1)
