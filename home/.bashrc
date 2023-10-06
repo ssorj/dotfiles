@@ -37,7 +37,7 @@ alias m="make"
 alias p="pwd"
 alias pl="plano"
 alias py="python3 -S"
-alias s="rg"
+alias s="rg --hidden"
 
 alias gd="git diff --minimal --ignore-space-at-eol"
 alias gl="git log --format='tformat:%C(auto)%h  %C(blue)%<(8,trunc)%al  %<(14,trunc)%cr  %C(auto)%d %C(auto)%s' -n 20"
