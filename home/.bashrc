@@ -82,11 +82,12 @@ alias sk="skupper"
 alias skp="skupper --platform podman"
 
 alias kc="kubectl"
-alias kcl="kubectl logs"
+alias kcl="echo kubectl logs; echo; kubectl logs"
 alias kcd="echo kubectl get deployments; echo; kubectl get deployments"
 alias kcp="echo kubectl get pods; echo; kubectl get pods"
 alias kcs="echo kubectl get services; echo; kubectl get services"
 alias kcsp="echo kubectl get services,pods; echo; kubectl get services,pods"
+alias kce="echo kubectl get events --sort-by=.lastTimestamp; echo; kubectl get events --sort-by=.lastTimestamp"
 
 function kcn {
     if [[ $1 ]]; then
