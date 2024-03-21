@@ -28,16 +28,16 @@ fi
 alias cat="bat --theme base16 --number"
 alias head="cat -r :25"
 
-alias c="clear"
 alias j="jobs"
-alias l="exa --all --long --sort time --no-permissions --no-user"
-alias ll="exa --all --long --sort time"
+alias l="eza --all --long --sort time --no-permissions --no-user"
+alias ll="eza --all --long --sort time"
 alias ls="ls --color"
 alias m="make"
 alias p="pwd"
 alias pl="plano"
 alias py="python3 -S"
-alias s="rg --hidden"
+alias s="rg --hidden --fixed-strings --files-with-matches --count"
+alias sm="rg --hidden --fixed-strings"
 
 alias gd="git diff --minimal --ignore-space-at-eol"
 alias gl="git log --format='tformat:%C(auto)%h  %C(blue)%<(8,trunc)%al  %<(14,trunc)%cr  %C(auto)%d %C(auto)%s' -n 20"
@@ -83,10 +83,10 @@ alias skp="skupper --platform podman"
 
 alias kc="kubectl"
 alias kcl="echo kubectl logs; echo; kubectl logs"
+alias kcs="echo kubectl get services; echo; kubectl get services"
 alias kcd="echo kubectl get deployments; echo; kubectl get deployments"
 alias kcp="echo kubectl get pods; echo; kubectl get pods"
-alias kcs="echo kubectl get services; echo; kubectl get services"
-alias kcsp="echo kubectl get services,pods; echo; kubectl get services,pods"
+alias kci='echo kubectl get services,deployments,pods; echo; kubectl get services,deployments,pods'
 alias kce="echo kubectl get events --sort-by=.lastTimestamp; echo; kubectl get events --sort-by=.lastTimestamp"
 
 function kcn {
