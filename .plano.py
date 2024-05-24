@@ -138,3 +138,10 @@ def configure_gnome():
 @command
 def clean():
     remove(find(".", "__pycache__"))
+
+@command
+def update_plano():
+    """
+    Update the embedded Plano repo
+    """
+    update_external_from_github("external/plano", "ssorj", "plano")

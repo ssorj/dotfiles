@@ -17,6 +17,8 @@
 # under the License.
 #
 
+from plano import *
+
 @command
 def base_command(alpha, beta, omega="x"):
     """
@@ -28,12 +30,12 @@ def base_command(alpha, beta, omega="x"):
 @command(name="extended-command", parent=base_command)
 def extended_command(alpha, beta, omega="y"):
     print("extended", alpha, omega)
-    extended_command.parent.function(alpha, beta, omega)
+    parent(alpha, beta, omega)
 
-@command(args=(CommandArgument("message_", help="The message to print", display_name="message"),
-               CommandArgument("count", help="Print the message COUNT times"),
-               CommandArgument("extra", default=1, short_option="e")))
-def echo(message_, count=1, extra=None, trouble=False):
+@command(parameters=[CommandParameter("message_", help="The message to print", display_name="message"),
+                     CommandParameter("count", help="Print the message COUNT times"),
+                     CommandParameter("extra", default=1, short_option="e")])
+def echo(message_, count=1, extra=None, trouble=False, verbose=False):
     """
     Print a message to the console
     """
@@ -59,7 +61,7 @@ def haberdash(first, *middle, last="bowler"):
     data = [first, *middle, last]
     write_json("haberdash.json", data)
 
-@command(args=(CommandArgument("optional", positional=True),))
+@command(parameters=[CommandParameter("optional", positional=True)])
 def balderdash(required, optional="malarkey", other="rubbish", **extra_kwargs):
     """
     Balderdash command help
@@ -67,6 +69,10 @@ def balderdash(required, optional="malarkey", other="rubbish", **extra_kwargs):
 
     data = [required, optional, other]
     write_json("balderdash.json", data)
+
+@command
+def splasher():
+    write_json("splasher.json", [1])
 
 @command
 def dasher(alpha, beta=123):
@@ -79,11 +85,11 @@ def dancer(gamma, omega="abc", passthrough_args=[]):
 # Vixen's parent calls prancer.  We are testing to ensure the extended
 # prancer (below) is executed.
 
-from plano.tests import prancer, vixen
+from plano._tests import prancer, vixen
 
 @command(parent=prancer)
 def prancer():
-    prancer.parent.function()
+    parent()
 
     notice("Extended prancer")
 
@@ -91,4 +97,16 @@ def prancer():
 
 @command(parent=vixen)
 def vixen():
-    vixen.parent.function()
+    parent()
+
+@command
+def no_parent():
+    parent()
+
+@command(parameters=[CommandParameter("spinach")])
+def feta(*args, **kwargs):
+    write_json("feta.json", kwargs["spinach"])
+
+@command(hidden=True)
+def invisible(something="nothing"):
+    write_json("invisible.json", something)

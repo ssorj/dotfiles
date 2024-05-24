@@ -17,15 +17,12 @@
 # under the License.
 #
 
-import argparse as _argparse
-import asyncio as _asyncio
 import base64 as _base64
 import binascii as _binascii
 import code as _code
-import collections as _collections
+import datetime as _datetime
 import fnmatch as _fnmatch
 import getpass as _getpass
-import inspect as _inspect
 import json as _json
 import os as _os
 import pprint as _pprint
@@ -42,6 +39,7 @@ import tempfile as _tempfile
 import time as _time
 import traceback as _traceback
 import urllib as _urllib
+import urllib.parse as _urllib_parse
 import uuid as _uuid
 
 _max = max
@@ -55,9 +53,6 @@ class PlanoError(PlanoException):
     pass
 
 class PlanoTimeout(PlanoException):
-    pass
-
-class PlanoTestSkipped(Exception):
     pass
 
 ## Global variables
@@ -74,26 +69,26 @@ LINUX = _sys.platform == "linux"
 WINDOWS = _sys.platform in ("win32", "cygwin")
 
 PLANO_DEBUG = "PLANO_DEBUG" in ENV
+PLANO_COLOR = "PLANO_COLOR" in ENV
 
 ## Archive operations
 
 def make_archive(input_dir, output_file=None, quiet=False):
-    """
-    group: archive_operations
-    """
-
     check_program("tar")
 
     archive_stem = get_base_name(input_dir)
 
     if output_file is None:
-        output_file = "{}.tar.gz".format(join(get_current_dir(), archive_stem))
+        # tar on Windows needs this
+        base = join(get_current_dir(), archive_stem)
+        base = base.replace("\\", "/")
 
-    _info(quiet, "Making archive {} from directory {}", repr(output_file), repr(input_dir))
+        output_file = f"{base}.tar.gz"
 
-    with working_dir(get_parent_dir(input_dir)):
-        run("tar -czf temp.tar.gz {}".format(archive_stem))
-        move("temp.tar.gz", output_file)
+    _notice(quiet, "Making archive {} from directory {}", repr(output_file), repr(input_dir))
+
+    with working_dir(get_parent_dir(input_dir), quiet=True):
+        run(f"tar -czf {output_file} {archive_stem}", quiet=True)
 
     return output_file
 
@@ -103,116 +98,40 @@ def extract_archive(input_file, output_dir=None, quiet=False):
     if output_dir is None:
         output_dir = get_current_dir()
 
-    _info(quiet, "Extracting archive {} to directory {}", repr(input_file), repr(output_dir))
+    _notice(quiet, "Extracting archive {} to directory {}", repr(input_file), repr(output_dir))
 
     input_file = get_absolute_path(input_file)
 
-    with working_dir(output_dir):
-        copy(input_file, "temp.tar.gz")
+    # tar on Windows needs this
+    input_file = input_file.replace("\\", "/")
 
-        try:
-            run("tar -xf temp.tar.gz")
-        finally:
-            remove("temp.tar.gz")
+    with working_dir(output_dir, quiet=True):
+        run(f"tar -xf {input_file}", quiet=True)
 
     return output_dir
 
 def rename_archive(input_file, new_archive_stem, quiet=False):
-    _info(quiet, "Renaming archive {} with stem {}", repr(input_file), repr(new_archive_stem))
+    _notice(quiet, "Renaming archive {} with stem {}", repr(input_file), repr(new_archive_stem))
 
     output_dir = get_absolute_path(get_parent_dir(input_file))
     output_file = "{}.tar.gz".format(join(output_dir, new_archive_stem))
 
+    # tar on Windows needs this
+    output_file = output_file.replace("\\", "/")
+
     input_file = get_absolute_path(input_file)
 
-    with working_dir():
-        extract_archive(input_file)
+    with working_dir(quiet=True):
+        extract_archive(input_file, quiet=True)
 
         input_name = list_dir()[0]
-        input_dir = move(input_name, new_archive_stem)
+        input_dir = move(input_name, new_archive_stem, quiet=True)
 
-        make_archive(input_dir, output_file=output_file)
+        make_archive(input_dir, output_file=output_file, quiet=True)
 
-    remove(input_file)
+    remove(input_file, quiet=True)
 
     return output_file
-
-## Command operations
-
-class BaseCommand:
-    def main(self, args=None):
-        args = self.parse_args(args)
-
-        assert args is None or isinstance(args, _argparse.Namespace), args
-
-        self.verbose = args.verbose or args.debug
-        self.quiet = args.quiet
-        self.debug_enabled = args.debug
-        self.init_only = args.init_only
-
-        level = "notice"
-
-        if self.verbose:
-            level = "info"
-
-        if self.quiet:
-            level = "error"
-
-        if self.debug_enabled:
-            level = "debug"
-
-        with logging_enabled(level=level):
-            try:
-                self.init(args)
-
-                if self.init_only:
-                    return
-
-                self.run()
-            except KeyboardInterrupt:
-                pass
-            except PlanoError as e:
-                if self.debug_enabled:
-                    _traceback.print_exc()
-                    exit(1)
-                else:
-                    exit(str(e))
-
-    def parse_args(self, args): # pragma: nocover
-        raise NotImplementedError()
-
-    def init(self, args): # pragma: nocover
-        pass
-
-    def run(self): # pragma: nocover
-        raise NotImplementedError()
-
-class BaseArgumentParser(_argparse.ArgumentParser):
-    def __init__(self, **kwargs):
-        super(BaseArgumentParser, self).__init__(**kwargs)
-
-        self.allow_abbrev = False
-        self.formatter_class = _argparse.RawDescriptionHelpFormatter
-
-        self.add_argument("--verbose", action="store_true",
-                          help="Print detailed logging to the console")
-        self.add_argument("--quiet", action="store_true",
-                          help="Print no logging to the console")
-        self.add_argument("--debug", action="store_true",
-                          help="Print debugging output to the console")
-        self.add_argument("--init-only", action="store_true",
-                          help=_argparse.SUPPRESS)
-
-        _capitalize_help(self)
-
-# Patch the default help text
-def _capitalize_help(parser):
-    try:
-        for action in parser._actions:
-            if action.help and action.help is not _argparse.SUPPRESS:
-                action.help = capitalize(action.help)
-    except: # pragma: nocover
-        pass
 
 ## Console operations
 
@@ -236,6 +155,7 @@ _color_codes = {
     "magenta": "\u001b[35",
     "cyan": "\u001b[36",
     "white": "\u001b[37",
+    "gray": "\u001b[90",
 }
 
 _color_reset = "\u001b[0m"
@@ -251,7 +171,7 @@ def _get_color_code(color, bright):
     return "".join(elems)
 
 def _is_color_enabled(file):
-    return hasattr(file, "isatty") and file.isatty()
+    return PLANO_COLOR or hasattr(file, "isatty") and file.isatty()
 
 class console_color:
     def __init__(self, color=None, bright=False, file=_sys.stdout):
@@ -293,7 +213,7 @@ class output_redirected:
     def __enter__(self):
         flush()
 
-        _info(self.quiet, "Redirecting output to file {}", repr(self.output))
+        _notice(self.quiet, "Redirecting output to file {}", repr(self.output))
 
         if is_string(self.output):
             output = open(self.output, "w")
@@ -313,8 +233,8 @@ except NameError: # pragma: nocover
         import pdb
         pdb.set_trace()
 
-def repl(vars): # pragma: nocover
-    _code.InteractiveConsole(locals=vars).interact()
+def repl(locals): # pragma: nocover
+    _code.InteractiveConsole(locals=locals).interact()
 
 def print_properties(props, file=None):
     size = max([len(x[0]) for x in props])
@@ -332,18 +252,18 @@ def print_properties(props, file=None):
 
 ## Directory operations
 
-def find(dirs=None, include="*", exclude=()):
+def find(dirs=None, include="*", exclude=[]):
     if dirs is None:
         dirs = "."
 
     if is_string(dirs):
-        dirs = (dirs,)
+        dirs = [dirs]
 
     if is_string(include):
-        include = (include,)
+        include = [include]
 
     if is_string(exclude):
-        exclude = (exclude,)
+        exclude = [exclude]
 
     found = set()
 
@@ -372,7 +292,7 @@ def make_dir(dir, quiet=False):
         return dir
 
     if not exists(dir):
-        _info(quiet, "Making directory '{}'", dir)
+        _notice(quiet, "Making directory '{}'", dir)
         _os.makedirs(dir)
 
     return dir
@@ -393,17 +313,19 @@ def change_dir(dir, quiet=False):
 
     return prev_dir
 
-def list_dir(dir=None, include="*", exclude=()):
-    if dir in (None, ""):
+def list_dir(dir=None, include="*", exclude=[]):
+    if dir is None:
         dir = get_current_dir()
+    else:
+        dir = expand(dir)
 
     assert is_dir(dir), dir
 
     if is_string(include):
-        include = (include,)
+        include = [include]
 
     if is_string(exclude):
-        exclude = (exclude,)
+        exclude = [exclude]
 
     names = _os.listdir(dir)
 
@@ -416,6 +338,22 @@ def list_dir(dir=None, include="*", exclude=()):
 
     return sorted(names)
 
+def print_dir(dir=None, include="*", exclude=[]):
+    if dir is None:
+        dir = get_current_dir()
+    else:
+        dir = expand(dir)
+
+    names = list_dir(dir=dir, include=include, exclude=exclude)
+
+    print("{}:".format(get_absolute_path(dir)))
+
+    if names:
+        for name in names:
+            print(f"  {name}")
+    else:
+        print("  [none]")
+
 # No args constructor gets a temp dir
 class working_dir:
     def __init__(self, dir=None, quiet=False):
@@ -427,12 +365,14 @@ class working_dir:
         if self.dir is None:
             self.dir = make_temp_dir()
             self.remove = True
+        else:
+            self.dir = expand(self.dir)
 
     def __enter__(self):
         if self.dir == ".":
             return
 
-        _info(self.quiet, "Entering directory {}", repr(get_absolute_path(self.dir)))
+        _notice(self.quiet, "Entering directory {}", repr(get_absolute_path(self.dir)))
 
         make_dir(self.dir, quiet=True)
 
@@ -491,7 +431,7 @@ def check_env(var, message=None):
 def check_module(module, message=None):
     if _pkgutil.find_loader(module) is None:
         if message is None:
-            message = "Module {} is not found".format(repr(module))
+            message = "Python module {} is not found".format(repr(module))
 
         raise PlanoError(message)
 
@@ -565,12 +505,15 @@ def print_env(file=None):
 
     print_properties(props, file=file)
 
+def print_stack(file=None):
+    _traceback.print_stack(file=file)
+
 ## File operations
 
 def touch(file, quiet=False):
     file = expand(file)
 
-    _info(quiet, "Touching {}", repr(file))
+    _notice(quiet, "Touching {}", repr(file))
 
     try:
         _os.utime(file, None)
@@ -585,20 +528,20 @@ def copy(from_path, to_path, symlinks=True, inside=True, quiet=False):
     from_path = expand(from_path)
     to_path = expand(to_path)
 
-    _info(quiet, "Copying {} to {}", repr(from_path), repr(to_path))
+    _notice(quiet, "Copying {} to {}", repr(from_path), repr(to_path))
 
     if is_dir(to_path) and inside:
         to_path = join(to_path, get_base_name(from_path))
     else:
         make_parent_dir(to_path, quiet=True)
 
-    if is_dir(from_path):
+    if is_link(from_path) and symlinks:
+        make_link(to_path, read_link(from_path), quiet=True)
+    elif is_dir(from_path):
         for name in list_dir(from_path):
             copy(join(from_path, name), join(to_path, name), symlinks=symlinks, inside=False, quiet=True)
 
         _shutil.copystat(from_path, to_path)
-    elif is_link(from_path) and symlinks:
-        make_link(to_path, read_link(from_path), quiet=True)
     else:
         _shutil.copy2(from_path, to_path)
 
@@ -609,16 +552,46 @@ def move(from_path, to_path, inside=True, quiet=False):
     from_path = expand(from_path)
     to_path = expand(to_path)
 
-    _info(quiet, "Moving {} to {}", repr(from_path), repr(to_path))
+    _notice(quiet, "Moving {} to {}", repr(from_path), repr(to_path))
 
     to_path = copy(from_path, to_path, inside=inside, quiet=True)
     remove(from_path, quiet=True)
 
     return to_path
 
+def replace(path, replacement, quiet=False):
+    path = expand(path)
+    replacement = expand(replacement)
+
+    _notice(quiet, "Replacing {} with {}", repr(path), repr(replacement))
+
+    with temp_dir() as backup_dir:
+        backup = join(backup_dir, "backup")
+        backup_created = False
+
+        if exists(path):
+            move(path, backup, quiet=True)
+            backup_created = True
+
+        try:
+            move(replacement, path, quiet=True)
+        except OSError:
+            notice("Removing")
+            remove(path, quiet=True)
+
+            if backup_created:
+                move(backup, path, quiet=True)
+
+            raise
+
+        assert not exists(replacement), replacement
+        assert exists(path), path
+
+    return path
+
 def remove(paths, quiet=False):
     if is_string(paths):
-        paths = (paths,)
+        paths = [paths]
 
     for path in paths:
         path = expand(path)
@@ -722,9 +695,9 @@ def tail_lines(file, count):
 
     return lines[-count:]
 
-def replace_in_file(file, expr, replacement, count=0):
+def string_replace_file(file, expr, replacement, count=0):
     file = expand(file)
-    return write(file, replace(read(file), expr, replacement, count=count))
+    return write(file, string_replace(read(file), expr, replacement, count=count))
 
 def concatenate(file, input_files):
     file = expand(file)
@@ -746,11 +719,11 @@ def concatenate(file, input_files):
 ## Iterable operations
 
 def unique(iterable):
-    return list(_collections.OrderedDict.fromkeys(iterable).keys())
+    return list(dict.fromkeys(iterable).keys())
 
 def skip(iterable, values=(None, "", (), [], {})):
     if is_scalar(values):
-        values = (values,)
+        values = [values]
 
     items = list()
 
@@ -784,71 +757,93 @@ def parse_json(json):
 def emit_json(data):
     return _json.dumps(data, indent=4, separators=(",", ": "), sort_keys=True)
 
+def print_json(data, **kwargs):
+    print(emit_json(data), **kwargs)
+
 ## HTTP operations
 
-def _run_curl(method, url, content=None, content_file=None, content_type=None, output_file=None, insecure=False):
+def _run_curl(method, url, content=None, content_file=None, content_type=None, output_file=None, insecure=False,
+              user=None, password=None, quiet=False):
     check_program("curl")
 
-    options = [
-        "-sf",
-        "-X", method,
-        "-H", "'Expect:'",
-    ]
+    _notice(quiet, f"Sending {method} request to '{url}'")
+
+    args = ["curl", "-sfL"]
+
+    if method != "GET":
+        args.extend(["-X", method])
 
     if content is not None:
         assert content_file is None
-        options.extend(("-d", "@-"))
+        args.extend(["-H", "Expect:", "-d", "@-"])
 
     if content_file is not None:
         assert content is None, content
-        options.extend(("-d", "@{}".format(content_file)))
+        args.extend(["-H", "Expect:", "-d", f"@{content_file}"])
 
     if content_type is not None:
-        options.extend(("-H", "'Content-Type: {}'".format(content_type)))
+        args.extend(["-H", f"'Content-Type: {content_type}'"])
 
     if output_file is not None:
-        options.extend(("-o", output_file))
+        args.extend(["-o", output_file])
 
     if insecure:
-        options.append("--insecure")
+        args.append("--insecure")
 
-    options = " ".join(options)
-    command = "curl {} {}".format(options, url)
+    if user is not None:
+        assert password is not None
+        args.extend(["--user", f"{user}:{password}"])
+
+    args.append(url)
+
+    if output_file is not None:
+        make_parent_dir(output_file, quiet=True)
+
+    proc = run(args, stdin=_subprocess.PIPE, stdout=_subprocess.PIPE, stderr=_subprocess.PIPE,
+               input=content, check=False, quiet=True)
+
+    if proc.exit_code > 0:
+        raise PlanoProcessError(proc)
 
     if output_file is None:
-        return call(command, input=content)
-    else:
-        make_parent_dir(output_file, quiet=True)
-        run(command, input=content)
+        return proc.stdout_result
 
-def http_get(url, output_file=None, insecure=False):
-    return _run_curl("GET", url, output_file=output_file, insecure=insecure)
+def http_get(url, output_file=None, insecure=False, user=None, password=None, quiet=False):
+    return _run_curl("GET", url, output_file=output_file, insecure=insecure, user=user, password=password, quiet=quiet)
 
-def http_get_json(url, insecure=False):
-    return parse_json(http_get(url, insecure=insecure))
+def http_get_json(url, insecure=False, user=None, password=None, quiet=False):
+    return parse_json(http_get(url, insecure=insecure, user=user, password=password, quiet=quiet))
 
-def http_put(url, content, content_type=None, insecure=False):
-    _run_curl("PUT", url, content=content, content_type=content_type, insecure=insecure)
+def http_put(url, content, content_type=None, insecure=False, user=None, password=None, quiet=False):
+    _run_curl("PUT", url, content=content, content_type=content_type, insecure=insecure, user=user, password=password,
+              quiet=quiet)
 
-def http_put_file(url, content_file, content_type=None, insecure=False):
-    _run_curl("PUT", url, content_file=content_file, content_type=content_type, insecure=insecure)
+def http_put_file(url, content_file, content_type=None, insecure=False, user=None, password=None, quiet=False):
+    _run_curl("PUT", url, content_file=content_file, content_type=content_type, insecure=insecure, user=user,
+              password=password, quiet=quiet)
 
-def http_put_json(url, data, insecure=False):
-    http_put(url, emit_json(data), content_type="application/json", insecure=insecure)
+def http_put_json(url, data, insecure=False, user=None, password=None, quiet=False):
+    http_put(url, emit_json(data), content_type="application/json", insecure=insecure, user=user, password=password,
+             quiet=quiet)
 
-def http_post(url, content, content_type=None, output_file=None, insecure=False):
-    return _run_curl("POST", url, content=content, content_type=content_type, output_file=output_file, insecure=insecure)
+def http_post(url, content, content_type=None, output_file=None, insecure=False, user=None, password=None,
+              quiet=False):
+    return _run_curl("POST", url, content=content, content_type=content_type, output_file=output_file,
+                     insecure=insecure, user=user, password=password, quiet=quiet)
 
-def http_post_file(url, content_file, content_type=None, output_file=None, insecure=False):
-    return _run_curl("POST", url, content_file=content_file, content_type=content_type, output_file=output_file, insecure=insecure)
+def http_post_file(url, content_file, content_type=None, output_file=None, insecure=False, user=None, password=None,
+                   quiet=False):
+    return _run_curl("POST", url, content_file=content_file, content_type=content_type, output_file=output_file,
+                     insecure=insecure, user=user, password=password, quiet=quiet)
 
-def http_post_json(url, data, insecure=False):
-    return parse_json(http_post(url, emit_json(data), content_type="application/json", insecure=insecure))
+def http_post_json(url, data, insecure=False, user=None, password=None, quiet=False):
+    return parse_json(http_post(url, emit_json(data), content_type="application/json", insecure=insecure, user=user,
+                                password=password, quiet=quiet))
 
 ## Link operations
 
-def make_link(path, linked_path, quiet=False):
-    _info(quiet, "Making link {} to {}", repr(path), repr(linked_path))
+def make_link(path: str, linked_path: str, quiet=False) -> str:
+    _notice(quiet, "Making symlink {} to {}", repr(path), repr(linked_path))
 
     make_parent_dir(path, quiet=True)
     remove(path, quiet=True)
@@ -864,27 +859,26 @@ def read_link(path):
 
 _logging_levels = (
     "debug",
-    "info",
     "notice",
-    "warn",
+    "warning",
     "error",
     "disabled",
 )
 
 _DEBUG = _logging_levels.index("debug")
-_INFO = _logging_levels.index("info")
 _NOTICE = _logging_levels.index("notice")
-_WARN = _logging_levels.index("warn")
+_WARNING = _logging_levels.index("warning")
 _ERROR = _logging_levels.index("error")
 _DISABLED = _logging_levels.index("disabled")
 
 _logging_output = None
 _logging_threshold = _NOTICE
+_logging_contexts = list()
 
-def enable_logging(level="notice", output=None):
-    assert level in _logging_levels
+def enable_logging(level="notice", output=None, quiet=False):
+    assert level in _logging_levels, level
 
-    info("Enabling logging (level={}, output={})", repr(level), repr(nvl(output, "stderr")))
+    _notice(quiet, "Enabling logging (level={}, output={})", repr(level), repr(nvl(output, "stderr")))
 
     global _logging_threshold
     _logging_threshold = _logging_levels.index(level)
@@ -895,8 +889,8 @@ def enable_logging(level="notice", output=None):
     global _logging_output
     _logging_output = output
 
-def disable_logging():
-    info("Disabling logging")
+def disable_logging(quiet=False):
+    _notice(quiet, "Disabling logging")
 
     global _logging_threshold
     _logging_threshold = _DISABLED
@@ -911,39 +905,50 @@ class logging_enabled:
         self.prev_output = _logging_output
 
         if self.level == "disabled":
-            disable_logging()
+            disable_logging(quiet=True)
         else:
-            enable_logging(level=self.level, output=self.output)
+            enable_logging(level=self.level, output=self.output, quiet=True)
 
     def __exit__(self, exc_type, exc_value, traceback):
         if self.prev_level == "disabled":
-            disable_logging()
+            disable_logging(quiet=True)
         else:
-            enable_logging(level=self.prev_level, output=self.prev_output)
+            enable_logging(level=self.prev_level, output=self.prev_output, quiet=True)
 
 class logging_disabled(logging_enabled):
     def __init__(self):
-        super(logging_disabled, self).__init__(level="disabled")
+        super().__init__(level="disabled")
+
+class logging_context:
+    def __init__(self, name):
+        self.name = name
+
+    def __enter__(self):
+        _logging_contexts.append(self.name)
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        _logging_contexts.pop()
 
 def fail(message, *args):
-    error(message, *args)
-
     if isinstance(message, BaseException):
+        if not isinstance(message, PlanoError):
+            error(message)
+
         raise message
 
-    raise PlanoError(message.format(*args))
+    if args:
+        message = message.format(*args)
+
+    raise PlanoError(message)
 
 def error(message, *args):
     log(_ERROR, message, *args)
 
-def warn(message, *args):
-    log(_WARN, message, *args)
+def warning(message, *args):
+    log(_WARNING, message, *args)
 
 def notice(message, *args):
     log(_NOTICE, message, *args)
-
-def info(message, *args):
-    log(_INFO, message, *args)
 
 def debug(message, *args):
     log(_DEBUG, message, *args)
@@ -956,42 +961,52 @@ def log(level, message, *args):
         _print_message(level, message, args)
 
 def _print_message(level, message, args):
+    line = list()
     out = nvl(_logging_output, _sys.stderr)
-    exception = None
+
+    program_text = "{}:".format(get_program_name())
+
+    line.append(cformat(program_text, color="gray"))
+
+    level_text = "{}:".format(_logging_levels[level])
+    level_color = ("white", "cyan", "yellow", "red", None)[level]
+    level_bright = (False, False, False, True, False)[level]
+
+    line.append(cformat(level_text, color=level_color, bright=level_bright))
+
+    for name in _logging_contexts:
+        line.append(cformat("{}:".format(name), color="yellow"))
 
     if isinstance(message, BaseException):
         exception = message
-        message = "{}: {}".format(type(message).__name__, str(message))
+
+        line.append(str(exception))
+
+        print(" ".join(line), file=out)
+
+        if hasattr(exception, "__traceback__"):
+            _traceback.print_exception(type(exception), exception, exception.__traceback__, file=out)
     else:
         message = str(message)
 
-    if args:
-        message = message.format(*args)
+        if args:
+            message = message.format(*args)
 
-    program = "{}:".format(get_program_name())
+        line.append(capitalize(message))
 
-    level_color = ("cyan", "cyan", "blue", "yellow", "red", None)[level]
-    level_bright = (False, False, False, False, True, False)[level]
-    level = cformat("{:>6}:".format(_logging_levels[level]), color=level_color, bright=level_bright, file=out)
-
-    print(program, level, capitalize(message), file=out)
-
-    if exception is not None and hasattr(exception, "__traceback__"):
-        _traceback.print_exception(type(exception), exception, exception.__traceback__, file=out)
+        print(" ".join(line), file=out)
 
     out.flush()
 
-def _debug(quiet, message, *args):
+def _notice(quiet, message, *args):
     if quiet:
         debug(message, *args)
     else:
         notice(message, *args)
 
-def _info(quiet, message, *args):
-    if quiet:
-        info(message, *args)
-    else:
-        notice(message, *args)
+def _debug(quiet, message, *args):
+    if not quiet:
+        debug(message, *args)
 
 ## Path operations
 
@@ -1124,7 +1139,7 @@ def check_dir(path):
 def await_exists(path, timeout=30, quiet=False):
     path = expand(path)
 
-    _info(quiet, "Waiting for path {} to exist", repr(path))
+    _notice(quiet, "Waiting for path {} to exist", repr(path))
 
     timeout_message = "Timed out waiting for path {} to exist".format(path)
     period = 0.03125
@@ -1160,7 +1175,7 @@ def check_port(port, host="localhost"):
         raise PlanoError("Port {} (host {}) is not reachable".format(repr(port), repr(host)))
 
 def await_port(port, host="localhost", timeout=30, quiet=False):
-    _info(quiet, "Waiting for port {}", port)
+    _notice(quiet, "Waiting for port {}", port)
 
     if is_string(port):
         port = int(port)
@@ -1189,7 +1204,7 @@ def _format_command(command, represent=True):
     else:
         args = command
 
-    args = [expand(x) for x in args]
+    args = [expand(str(x)) for x in args]
     command = " ".join(args)
 
     if represent:
@@ -1205,7 +1220,7 @@ def _format_command(command, represent=True):
 # stderr=<file> - Send stderr to a file
 # shell=False - XXX
 def start(command, stdin=None, stdout=None, stderr=None, output=None, shell=False, stash=False, quiet=False):
-    _info(quiet, "Starting command {}", _format_command(command))
+    _notice(quiet, "Starting a new process (command {})", _format_command(command))
 
     if output is not None:
         stdout, stderr = output, output
@@ -1243,26 +1258,26 @@ def start(command, stdin=None, stdout=None, stderr=None, output=None, shell=Fals
         if is_string(command):
             args = command
         else:
-            args = " ".join(command)
+            args = " ".join(map(str, command))
     else:
         if is_string(command):
             args = _shlex.split(command)
         else:
             args = command
 
-        args = [expand(x) for x in args]
+        args = [expand(str(x)) for x in args]
 
     try:
         proc = PlanoProcess(args, stdin=stdin, stdout=stdout, stderr=stderr, shell=shell, close_fds=True, stash_file=stash_file)
     except OSError as e:
         raise PlanoError("Command {}: {}".format(_format_command(command), str(e)))
 
-    debug("{} started", proc)
+    _notice(quiet, "{} started", proc)
 
     return proc
 
 def stop(proc, timeout=None, quiet=False):
-    _info(quiet, "Stopping {}", proc)
+    _notice(quiet, "Stopping {}", proc)
 
     if proc.poll() is not None:
         if proc.exit_code == 0:
@@ -1279,16 +1294,17 @@ def stop(proc, timeout=None, quiet=False):
     return wait(proc, timeout=timeout, quiet=True)
 
 def kill(proc, quiet=False):
-    _info(quiet, "Killing {}", proc)
+    _notice(quiet, "Killing {}", proc)
 
     proc.terminate()
 
 def wait(proc, timeout=None, check=False, quiet=False):
-    _info(quiet, "Waiting for {} to exit", proc)
+    _notice(quiet, "Waiting for {} to exit", proc)
 
     try:
         proc.wait(timeout=timeout)
     except _subprocess.TimeoutExpired:
+        error("{} timed out after {} seconds", proc, timeout)
         raise PlanoTimeout()
 
     if proc.exit_code == 0:
@@ -1296,7 +1312,10 @@ def wait(proc, timeout=None, check=False, quiet=False):
     elif proc.exit_code < 0:
         debug("{} was terminated by signal {}", proc, abs(proc.exit_code))
     else:
-        debug("{} exited with code {}", proc, proc.exit_code)
+        if check:
+            error("{} exited with code {}", proc, proc.exit_code)
+        else:
+            debug("{} exited with code {}", proc, proc.exit_code)
 
     if proc.stash_file is not None:
         if proc.exit_code > 0:
@@ -1313,7 +1332,7 @@ def wait(proc, timeout=None, check=False, quiet=False):
 # input=<string> - Pipe <string> to the process
 def run(command, stdin=None, stdout=None, stderr=None, input=None, output=None,
         stash=False, shell=False, check=True, quiet=False):
-    _info(quiet, "Running command {}", _format_command(command))
+    _notice(quiet, "Running command {}", _format_command(command))
 
     if input is not None:
         assert stdin in (None, _subprocess.PIPE), stdin
@@ -1336,7 +1355,7 @@ def run(command, stdin=None, stdout=None, stderr=None, input=None, output=None,
 
 # input=<string> - Pipe the given input into the process
 def call(command, input=None, shell=False, quiet=False):
-    _info(quiet, "Calling {}", _format_command(command))
+    _notice(quiet, "Calling {}", _format_command(command))
 
     proc = run(command, stdin=_subprocess.PIPE, stdout=_subprocess.PIPE, stderr=_subprocess.PIPE,
                input=input, shell=shell, check=True, quiet=True)
@@ -1378,7 +1397,7 @@ class PlanoProcess(_subprocess.Popen):
     def __init__(self, args, **options):
         self.stash_file = options.pop("stash_file", None)
 
-        super(PlanoProcess, self).__init__(args, **options)
+        super().__init__(args, **options)
 
         self.args = args
         self.stdout_result = None
@@ -1394,14 +1413,14 @@ class PlanoProcess(_subprocess.Popen):
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        kill(self)
+        stop(self)
 
     def __repr__(self):
         return "process {} (command {})".format(self.pid, _format_command(self.args))
 
 class PlanoProcessError(_subprocess.CalledProcessError, PlanoError):
     def __init__(self, proc):
-        super(PlanoProcessError, self).__init__(proc.exit_code, _format_command(proc.args, represent=False))
+        super().__init__(proc.exit_code, _format_command(proc.args, represent=False))
 
 def _default_sigterm_handler(signum, frame):
     for proc in _child_processes:
@@ -1414,7 +1433,7 @@ _signal.signal(_signal.SIGTERM, _default_sigterm_handler)
 
 ## String operations
 
-def replace(string, expr, replacement, count=0):
+def string_replace(string, expr, replacement, count=0):
     return _re.sub(expr, replacement, string, count)
 
 def remove_prefix(string, prefix):
@@ -1479,10 +1498,13 @@ def base64_decode(string):
     return _base64.b64decode(string)
 
 def url_encode(string):
-    return _urllib.parse.quote_plus(string)
+    return _urllib_parse.quote_plus(string)
 
 def url_decode(string):
-    return _urllib.parse.unquote_plus(string)
+    return _urllib_parse.unquote_plus(string)
+
+def parse_url(url):
+    return _urllib_parse.urlparse(url)
 
 ## Temp operations
 
@@ -1495,24 +1517,24 @@ def get_user_temp_dir():
     except KeyError:
         return join(get_system_temp_dir(), get_user())
 
-def make_temp_file(suffix="", dir=None):
+def make_temp_file(prefix="plano-", suffix="", dir=None):
     if dir is None:
         dir = get_system_temp_dir()
 
-    return _tempfile.mkstemp(prefix="plano-", suffix=suffix, dir=dir)[1]
+    return _tempfile.mkstemp(prefix=prefix, suffix=suffix, dir=dir)[1]
 
-def make_temp_dir(suffix="", dir=None):
+def make_temp_dir(prefix="plano-", suffix="", dir=None):
     if dir is None:
         dir = get_system_temp_dir()
 
-    return _tempfile.mkdtemp(prefix="plano-", suffix=suffix, dir=dir)
+    return _tempfile.mkdtemp(prefix=prefix, suffix=suffix, dir=dir)
 
 class temp_file:
-    def __init__(self, suffix="", dir=None):
+    def __init__(self, prefix="plano-", suffix="", dir=None):
         if dir is None:
             dir = get_system_temp_dir()
 
-        self.fd, self.file = _tempfile.mkstemp(prefix="plano-", suffix=suffix, dir=dir)
+        self.fd, self.file = _tempfile.mkstemp(prefix=prefix, suffix=suffix, dir=dir)
 
     def __enter__(self):
         return self.file
@@ -1524,8 +1546,8 @@ class temp_file:
             remove(self.file, quiet=True)
 
 class temp_dir:
-    def __init__(self, suffix="", dir=None):
-        self.dir = make_temp_dir(suffix=suffix, dir=dir)
+    def __init__(self, prefix="plano-", suffix="", dir=None):
+        self.dir = make_temp_dir(prefix=prefix, suffix=suffix, dir=dir)
 
     def __enter__(self):
         return self.dir
@@ -1535,25 +1557,65 @@ class temp_dir:
 
 ## Time operations
 
-def sleep(seconds, quiet=False):
-    _info(quiet, "Sleeping for {} {}", seconds, plural("second", seconds))
-
-    _time.sleep(seconds)
-
+# Unix time
 def get_time():
     return _time.time()
 
-def format_duration(duration, align=False):
-    assert duration >= 0
+# Python UTC time
+def get_datetime():
+    return _datetime.datetime.now(tz=_datetime.timezone.utc)
 
-    if duration >= 3600:
-        value = duration / 3600
+def parse_timestamp(timestamp, format="%Y-%m-%dT%H:%M:%SZ"):
+    if timestamp is None:
+        return None
+
+    datetime = _datetime.datetime.strptime(timestamp, format)
+    datetime = datetime.replace(tzinfo=_datetime.timezone.utc)
+
+    return datetime
+
+def format_timestamp(datetime=None, format="%Y-%m-%dT%H:%M:%SZ"):
+    if datetime is None:
+        datetime = get_datetime()
+
+    return datetime.strftime(format)
+
+def format_date(datetime=None):
+    if datetime is None:
+        datetime = get_datetime()
+
+    day = datetime.day
+    month = datetime.strftime("%B")
+    year = datetime.strftime("%Y")
+
+    return f"{day} {month} {year}"
+
+def format_time(datetime=None, precision="second"):
+    if datetime is None:
+        datetime = get_datetime()
+
+    assert precision in ("minute", "second"), "Illegal precision value"
+
+    hour = datetime.hour
+    minute = datetime.strftime("%M")
+    second = datetime.strftime("%S")
+
+    if precision == "second":
+        return f"{hour}:{minute}:{second}"
+    else:
+        return f"{hour}:{minute}"
+
+def format_duration(seconds, align=False):
+    assert seconds >= 0
+
+    if seconds >= 3600:
+        value = seconds / 3600
         unit = "h"
-    elif duration >= 5 * 60:
-        value = duration / 60
+    elif seconds >= 5 * 60:
+        value = seconds / 60
         unit = "m"
     else:
-        value = duration
+        value = seconds
         unit = "s"
 
     if align:
@@ -1562,6 +1624,11 @@ def format_duration(duration, align=False):
         return "{:.0f}{}".format(value, unit)
     else:
         return remove_suffix("{:.1f}".format(value), ".0") + unit
+
+def sleep(seconds, quiet=False):
+    _notice(quiet, "Sleeping for {} {}", seconds, plural("second", seconds))
+
+    _time.sleep(seconds)
 
 class Timer:
     def __init__(self, timeout=None, timeout_message=None):
@@ -1677,7 +1744,7 @@ class Namespace:
 ## YAML operations
 
 def read_yaml(file):
-    check_module("yaml", "To install it, run 'pip install pyyaml'")
+    check_module("yaml", "Python module 'yaml' is not found.  To install it, run 'pip install pyyaml'.")
 
     import yaml as _yaml
 
@@ -1687,7 +1754,7 @@ def read_yaml(file):
         return _yaml.safe_load(f)
 
 def write_yaml(file, data):
-    check_module("yaml", "To install it, run 'pip install pyyaml'")
+    check_module("yaml", "Python module 'yaml' is not found.  To install it, run 'pip install pyyaml'.")
 
     import yaml as _yaml
 
@@ -1701,506 +1768,21 @@ def write_yaml(file, data):
     return file
 
 def parse_yaml(yaml):
-    check_module("yaml", "To install it, run 'pip install pyyaml'")
+    check_module("yaml", "Python module 'yaml' is not found.  To install it, run 'pip install pyyaml'.")
 
     import yaml as _yaml
 
     return _yaml.safe_load(yaml)
 
 def emit_yaml(data):
-    check_module("yaml", "To install it, run 'pip install pyyaml'")
+    check_module("yaml", "Python module 'yaml' is not found.  To install it, run 'pip install pyyaml'.")
 
     import yaml as _yaml
 
     return _yaml.safe_dump(data)
 
-## Test operations
-
-def test(_function=None, name=None, timeout=None, disabled=False):
-    class Test:
-        def __init__(self, function):
-            self.function = function
-            self.name = nvl(name, self.function.__name__.rstrip("_").replace("_", "-"))
-            self.timeout = timeout
-            self.disabled = disabled
-
-            self.module = _inspect.getmodule(self.function)
-
-            if not hasattr(self.module, "_plano_tests"):
-                self.module._plano_tests = list()
-
-            self.module._plano_tests.append(self)
-
-        def __call__(self, test_run, unskipped):
-            try:
-                ret = self.function()
-
-                if _inspect.iscoroutine(ret):
-                    _asyncio.run(ret)
-            except SystemExit as e:
-                error(e)
-                raise PlanoError("System exit with code {}".format(e))
-
-        def __repr__(self):
-            return "test '{}:{}'".format(self.module.__name__, self.name)
-
-    if _function is None:
-        return Test
-    else:
-        return Test(_function)
-
-def skip_test(reason=None):
-    if _inspect.stack()[2].frame.f_locals["unskipped"]:
-        return
-
-    raise PlanoTestSkipped(reason)
-
-class expect_exception:
-    def __init__(self, exception_type=Exception, contains=None):
-        self.exception_type = exception_type
-        self.contains = contains
-
-    def __enter__(self):
-        pass
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        if exc_value is None:
-            assert False, "Never encountered expected exception {}".format(self.exception_type.__name__)
-
-        if self.contains is None:
-            return isinstance(exc_value, self.exception_type)
-        else:
-            return isinstance(exc_value, self.exception_type) and self.contains in str(exc_value)
-
-class expect_error(expect_exception):
-    def __init__(self, contains=None):
-        super(expect_error, self).__init__(PlanoError, contains=contains)
-
-class expect_timeout(expect_exception):
-    def __init__(self, contains=None):
-        super(expect_timeout, self).__init__(PlanoTimeout, contains=contains)
-
-class expect_system_exit(expect_exception):
-    def __init__(self, contains=None):
-        super(expect_system_exit, self).__init__(SystemExit, contains=contains)
-
-class expect_output(temp_file):
-    def __init__(self, equals=None, contains=None, startswith=None, endswith=None):
-        super(expect_output, self).__init__()
-        self.equals = equals
-        self.contains = contains
-        self.startswith = startswith
-        self.endswith = endswith
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        result = read(self.file)
-
-        if self.equals is None:
-            assert len(result) > 0, result
-        else:
-            assert result == self.equals, result
-
-        if self.contains is not None:
-            assert self.contains in result, result
-
-        if self.startswith is not None:
-            assert result.startswith(self.startswith), result
-
-        if self.endswith is not None:
-            assert result.endswith(self.endswith), result
-
-        super(expect_output, self).__exit__(exc_type, exc_value, traceback)
-
-def print_tests(modules):
-    if _inspect.ismodule(modules):
-        modules = (modules,)
-
-    for module in modules:
-        for test in module._plano_tests:
-            flags = "(disabled)" if test.disabled else ""
-            print(" ".join((str(test), flags)).strip())
-
-def run_tests(modules, include="*", exclude=(), enable=(), unskip=(), test_timeout=300,
-              fail_fast=False, verbose=False, quiet=False):
-    if _inspect.ismodule(modules):
-        modules = (modules,)
-
-    if is_string(include):
-        include = (include,)
-
-    if is_string(exclude):
-        exclude = (exclude,)
-
-    if is_string(enable):
-        enable = (enable,)
-
-    if is_string(unskip):
-        enable = (unskip,)
-
-    test_run = TestRun(test_timeout=test_timeout, fail_fast=fail_fast, verbose=verbose, quiet=quiet)
-
-    if verbose:
-        notice("Starting {}", test_run)
-    elif not quiet:
-        cprint("=== Configuration ===", color="cyan")
-
-        props = (
-            ("Modules", format_empty(", ".join([x.__name__ for x in modules]), "[none]")),
-            ("Test timeout", format_duration(test_timeout)),
-            ("Fail fast", fail_fast),
-        )
-
-        print_properties(props)
-        print()
-
-    for module in modules:
-        if verbose:
-            notice("Running tests from module {} (file {})", repr(module.__name__), repr(module.__file__))
-        elif not quiet:
-            cprint("=== Module {} ===".format(repr(module.__name__)), color="cyan")
-
-        if not hasattr(module, "_plano_tests"):
-            warn("Module {} has no tests", repr(module.__name__))
-            continue
-
-        for test in module._plano_tests:
-            if test.disabled and not any([_fnmatch.fnmatchcase(test.name, x) for x in enable]):
-                continue
-
-            included = any([_fnmatch.fnmatchcase(test.name, x) for x in include])
-            excluded = any([_fnmatch.fnmatchcase(test.name, x) for x in exclude])
-            unskipped = any([_fnmatch.fnmatchcase(test.name, x) for x in unskip])
-
-            if included and not excluded:
-                test_run.tests.append(test)
-                _run_test(test_run, test, unskipped)
-
-        if not verbose and not quiet:
-            print()
-
-    total = len(test_run.tests)
-    skipped = len(test_run.skipped_tests)
-    failed = len(test_run.failed_tests)
-
-    if total == 0:
-        raise PlanoError("No tests ran")
-
-    notes = ""
-
-    if skipped != 0:
-        notes = "({} skipped)".format(skipped)
-
-    if failed == 0:
-        result_message = "All tests passed {}".format(notes).strip()
-    else:
-        result_message = "{} {} failed {}".format(failed, plural("test", failed), notes).strip()
-
-    if verbose:
-        if failed == 0:
-            notice(result_message)
-        else:
-            error(result_message)
-    elif not quiet:
-        cprint("=== Summary ===", color="cyan")
-
-        props = (
-            ("Total", total),
-            ("Skipped", skipped, format_not_empty(", ".join([x.name for x in test_run.skipped_tests]), "({})")),
-            ("Failed", failed, format_not_empty(", ".join([x.name for x in test_run.failed_tests]), "({})")),
-        )
-
-        print_properties(props)
-        print()
-
-        cprint("=== RESULT ===", color="cyan")
-
-        if failed == 0:
-            cprint(result_message, color="green")
-        else:
-            cprint(result_message, color="red", bright="True")
-
-        print()
-
-    if failed != 0:
-        raise PlanoError(result_message)
-
-def _run_test(test_run, test, unskipped):
-    if test_run.verbose:
-        notice("Running {}", test)
-    elif not test_run.quiet:
-        print("{:.<72} ".format(test.name + " "), end="")
-
-    timeout = nvl(test.timeout, test_run.test_timeout)
-
-    with temp_file() as output_file:
-        try:
-            with Timer(timeout=timeout) as timer:
-                if test_run.verbose:
-                    test(test_run, unskipped)
-                else:
-                    with output_redirected(output_file, quiet=True):
-                        test(test_run, unskipped)
-        except KeyboardInterrupt:
-            raise
-        except PlanoTestSkipped as e:
-            test_run.skipped_tests.append(test)
-
-            if test_run.verbose:
-                notice("{} SKIPPED ({})", test, format_duration(timer.elapsed_time))
-            elif not test_run.quiet:
-                _print_test_result("SKIPPED", timer, "yellow")
-                print("Reason: {}".format(str(e)))
-        except Exception as e:
-            test_run.failed_tests.append(test)
-
-            if test_run.verbose:
-                _traceback.print_exc()
-
-                if isinstance(e, PlanoTimeout):
-                    error("{} **FAILED** (TIMEOUT) ({})", test, format_duration(timer.elapsed_time))
-                else:
-                    error("{} **FAILED** ({})", test, format_duration(timer.elapsed_time))
-            elif not test_run.quiet:
-                if isinstance(e, PlanoTimeout):
-                    _print_test_result("**FAILED** (TIMEOUT)", timer, color="red", bright=True)
-                else:
-                    _print_test_result("**FAILED**", timer, color="red", bright=True)
-
-                _print_test_error(e)
-                _print_test_output(output_file)
-
-            if test_run.fail_fast:
-                return True
-        else:
-            test_run.passed_tests.append(test)
-
-            if test_run.verbose:
-                notice("{} PASSED ({})", test, format_duration(timer.elapsed_time))
-            elif not test_run.quiet:
-                _print_test_result("PASSED", timer)
-
-def _print_test_result(status, timer, color="white", bright=False):
-    cprint("{:<7}".format(status), color=color, bright=bright, end="")
-    print("{:>6}".format(format_duration(timer.elapsed_time, align=True)))
-
-def _print_test_error(e):
-    cprint("--- Error ---", color="yellow")
-
-    if isinstance(e, PlanoProcessError):
-        print("> {}".format(str(e)))
-    else:
-        lines = _traceback.format_exc().rstrip().split("\n")
-        lines = ["> {}".format(x) for x in lines]
-
-        print("\n".join(lines))
-
-def _print_test_output(output_file):
-    if get_file_size(output_file) == 0:
-        return
-
-    cprint("--- Output ---", color="yellow")
-
-    with open(output_file, "r") as out:
-        for line in out:
-            print("> {}".format(line), end="")
-
-class TestRun:
-    def __init__(self, test_timeout=None, fail_fast=False, verbose=False, quiet=False):
-        self.test_timeout = test_timeout
-        self.fail_fast = fail_fast
-        self.verbose = verbose
-        self.quiet = quiet
-
-        self.tests = list()
-        self.skipped_tests = list()
-        self.failed_tests = list()
-        self.passed_tests = list()
-
-    def __repr__(self):
-        return format_repr(self)
-
-## Plano command operations
-
-_command_help = {
-    "build":    "Build artifacts from source",
-    "clean":    "Clean up the source tree",
-    "dist":     "Generate distribution artifacts",
-    "install":  "Install the built artifacts on your system",
-    "test":     "Run the tests",
-}
-
-def command(_function=None, name=None, args=None, parent=None, passthrough=False):
-    class Command:
-        def __init__(self, function):
-            self.function = function
-            self.module = _inspect.getmodule(self.function)
-
-            self.name = name
-            self.args = args
-            self.parent = parent
-
-            if self.parent is None:
-                self.name = nvl(self.name, self.function.__name__.rstrip("_").replace("_", "-"))
-                self.args = self.process_args(self.args)
-            else:
-                self.name = nvl(self.name, self.parent.name)
-                self.args = nvl(self.args, self.parent.args)
-
-            doc = _inspect.getdoc(self.function)
-
-            if doc is None:
-                self.help = _command_help.get(self.name)
-                self.description = self.help
-            else:
-                self.help = doc.split("\n")[0]
-                self.description = doc
-
-            if self.parent is not None:
-                self.help = nvl(self.help, self.parent.help)
-                self.description = nvl(self.description, self.parent.description)
-
-            self.passthrough = passthrough
-
-            debug("Defining {}", self)
-
-            for arg in self.args.values():
-                debug("  {}", str(arg).capitalize())
-
-        def __repr__(self):
-            return "command '{}:{}'".format(self.module.__name__, self.name)
-
-        def process_args(self, input_args):
-            sig = _inspect.signature(self.function)
-            params = list(sig.parameters.values())
-            input_args = {x.name: x for x in nvl(input_args, ())}
-            output_args = _collections.OrderedDict()
-
-            for param in params:
-                try:
-                    arg = input_args[param.name]
-                except KeyError:
-                    arg = CommandArgument(param.name)
-
-                if param.kind is param.POSITIONAL_ONLY: # pragma: nocover
-                    if arg.positional is None:
-                        arg.positional = True
-                elif param.kind is param.POSITIONAL_OR_KEYWORD and param.default is param.empty:
-                    if arg.positional is None:
-                        arg.positional = True
-                elif param.kind is param.POSITIONAL_OR_KEYWORD and param.default is not param.empty:
-                    arg.optional = True
-                    arg.default = param.default
-                elif param.kind is param.VAR_POSITIONAL:
-                    if arg.positional is None:
-                        arg.positional = True
-                    arg.multiple = True
-                elif param.kind is param.VAR_KEYWORD:
-                    continue
-                elif param.kind is param.KEYWORD_ONLY:
-                    arg.optional = True
-                    arg.default = param.default
-                else: # pragma: nocover
-                    raise NotImplementedError(param.kind)
-
-                if arg.type is None and arg.default not in (None, False): # XXX why false?
-                    arg.type = type(arg.default)
-
-                output_args[arg.name] = arg
-
-            return output_args
-
-        def __call__(self, *args, **kwargs):
-            from .commands import _plano_command, PlanoCommand
-            app = _plano_command
-
-            assert isinstance(app, PlanoCommand), app
-
-            command = app.bound_commands[self.name]
-
-            if command is not self:
-                # The command bound to this name has been overridden.
-                # This happens when a parent command invokes a peer
-                # command that is overridden.
-
-                command(*args, **kwargs)
-
-                return
-
-            debug("Running {} {} {}".format(self, args, kwargs))
-
-            app.running_commands.append(self)
-
-            dashes = "--" * len(app.running_commands)
-            display_args = list(self.get_display_args(args, kwargs))
-
-            with console_color("magenta", file=_sys.stderr):
-                eprint("{}> {}".format(dashes, self.name), end="")
-
-                if display_args:
-                    eprint(" ({})".format(", ".join(display_args)), end="")
-
-                eprint()
-
-            self.function(*args, **kwargs)
-
-            cprint("<{} {}".format(dashes, self.name), color="magenta", file=_sys.stderr)
-
-            app.running_commands.pop()
-
-            if app.running_commands:
-                name = app.running_commands[-1].name
-
-                cprint("{}| {}".format(dashes[:-2], name), color="magenta", file=_sys.stderr)
-
-        def get_display_args(self, args, kwargs):
-            for i, arg in enumerate(self.args.values()):
-                if arg.positional:
-                    if arg.multiple:
-                        for va in args[i:]:
-                            yield repr(va)
-                    elif arg.optional:
-                        value = args[i]
-
-                        if value == arg.default:
-                            continue
-
-                        yield repr(value)
-                    else:
-                        yield repr(args[i])
-                else:
-                    value = kwargs.get(arg.name, arg.default)
-
-                    if value == arg.default:
-                        continue
-
-                    if value in (True, False):
-                        value = str(value).lower()
-                    else:
-                        value = repr(value)
-
-                    yield "{}={}".format(arg.display_name, value)
-
-    if _function is None:
-        return Command
-    else:
-        return Command(_function)
-
-class CommandArgument:
-    def __init__(self, name, display_name=None, type=None, metavar=None, help=None, short_option=None, default=None, positional=None):
-        self.name = name
-        self.display_name = nvl(display_name, self.name.replace("_", "-"))
-        self.type = type
-        self.metavar = nvl(metavar, self.display_name.upper())
-        self.help = help
-        self.short_option = short_option
-        self.default = default
-        self.positional = positional
-
-        self.optional = False
-        self.multiple = False
-
-    def __repr__(self):
-        return "argument '{}' (default {})".format(self.name, repr(self.default))
+def print_yaml(data, **kwargs):
+    print(emit_yaml(data), **kwargs)
 
 if PLANO_DEBUG: # pragma: nocover
     enable_logging(level="debug")

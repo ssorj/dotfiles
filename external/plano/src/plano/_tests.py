@@ -17,6 +17,7 @@
 # under the License.
 #
 
+import datetime as _datetime
 import getpass as _getpass
 import os as _os
 import signal as _signal
@@ -24,15 +25,16 @@ import socket as _socket
 import sys as _sys
 import threading as _threading
 
+from .github import *
+
 try:
     import http.server as _http
 except ImportError: # pragma: nocover
     import BaseHTTPServer as _http
 
-from .main import *
-from .commands import *
+from .test import *
 
-test_project_dir = join(get_parent_dir(__file__), "testproject")
+test_project_dir = join(get_parent_dir(__file__), "_testproject")
 
 class test_project(working_dir):
     def __enter__(self):
@@ -52,48 +54,53 @@ def archive_operations():
         assert is_file("some-dir.tar.gz"), list_dir()
 
         extract_archive("some-dir.tar.gz", output_dir="some-subdir")
-        assert is_dir("some-subdir/some-dir")
-        assert is_file("some-subdir/some-dir/some-file")
+        assert is_dir("some-subdir/some-dir"), list_dir("some-subdir")
+        assert is_file("some-subdir/some-dir/some-file"), list_dir("some-subdir/some-dir")
 
         rename_archive("some-dir.tar.gz", "something-else")
-        assert is_file("something-else.tar.gz")
+        assert is_file("something-else.tar.gz"), list_dir()
 
         extract_archive("something-else.tar.gz")
-        assert is_dir("something-else")
-        assert is_file("something-else/some-file")
+        assert is_dir("something-else"), list_dir()
+        assert is_file("something-else/some-file"), list_dir("something-else")
 
 @test
 def command_operations():
     class SomeCommand(BaseCommand):
         def __init__(self):
+            super().__init__()
+
             self.parser = BaseArgumentParser()
             self.parser.add_argument("--interrupt", action="store_true")
             self.parser.add_argument("--explode", action="store_true")
+            self.parser.add_argument("--verbose", action="store_true")
+            self.parser.add_argument("--quiet", action="store_true")
 
         def parse_args(self, args):
             return self.parser.parse_args(args)
 
         def init(self, args):
-            self.verbose = args.verbose
             self.interrupt = args.interrupt
             self.explode = args.explode
+            self.verbose = args.verbose
+            self.quiet = args.quiet
 
         def run(self):
-            if self.verbose:
-                print("Hello")
-
             if self.interrupt:
                 raise KeyboardInterrupt()
 
             if self.explode:
                 raise PlanoError("Exploded")
 
+            if self.verbose:
+                print("Hello")
+
     SomeCommand().main([])
+    SomeCommand().main(["--verbose"])
     SomeCommand().main(["--interrupt"])
-    SomeCommand().main(["--debug"])
 
     with expect_system_exit():
-        SomeCommand().main(["--verbose", "--debug", "--explode"])
+        SomeCommand().main(["--verbose", "--explode"])
 
 @test
 def console_operations():
@@ -135,6 +142,10 @@ def dir_operations():
         with working_dir():
             result = list_dir()
             assert result == [], result
+
+        print_dir()
+        print_dir(test_dir)
+        print_dir(test_dir, "*.not-there")
 
         result = find(test_dir)
         assert result == [test_file_1, test_file_2], (result, [test_file_1, test_file_2])
@@ -227,6 +238,8 @@ def env_operations():
         with open(out, "w") as f:
             print_env(file=f)
 
+    print_stack()
+
 @test
 def file_operations():
     with working_dir():
@@ -305,10 +318,48 @@ def file_operations():
         result = get_file_size(file)
         assert result == 10, result
 
+        zeta_dir = make_dir("zeta-dir")
+        zeta_file = touch(join(zeta_dir, "zeta-file"))
+
+        eta_dir = make_dir("eta-dir")
+        eta_file = touch(join(eta_dir, "eta-file"))
+
+        replace(zeta_dir, eta_dir)
+        assert not exists(zeta_file)
+        assert exists(zeta_dir)
+        assert is_file(join(zeta_dir, "eta-file"))
+
+        with expect_exception():
+            replace(zeta_dir, "not-there")
+
+        assert exists(zeta_dir)
+        assert is_file(join(zeta_dir, "eta-file"))
+
+        theta_file = write("theta-file", "theta")
+        iota_file = write("iota-file", "iota")
+
+        replace(theta_file, iota_file)
+        assert not exists(iota_file)
+        assert read(theta_file) == "iota"
+
+@test
+def github_operations():
+    result = convert_github_markdown("# Hello, Fritz")
+    assert "Hello, Fritz" in result, result
+
+    with working_dir():
+        update_external_from_github("temp", "ssorj", "plano")
+        assert is_file("temp/Makefile"), list_dir("temp")
+
 @test
 def http_operations():
     class Handler(_http.BaseHTTPRequestHandler):
         def do_GET(self):
+            if not self.path.startswith("/api"):
+                self.send_response(404)
+                self.end_headers()
+                return
+
             self.send_response(200)
             self.end_headers()
             self.wfile.write(b"[1]")
@@ -337,7 +388,8 @@ def http_operations():
             self.server.serve_forever()
 
     host, port = "localhost", get_random_port()
-    url = "http://{}:{}".format(host, port)
+    url = "http://{}:{}/api".format(host, port)
+    missing_url = "http://{}:{}/nono".format(host, port)
 
     try:
         server = _http.HTTPServer((host, port), Handler)
@@ -354,7 +406,13 @@ def http_operations():
             result = http_get(url)
             assert result == "[1]", result
 
+            with expect_error():
+                http_get(missing_url)
+
             result = http_get(url, insecure=True)
+            assert result == "[1]", result
+
+            result = http_get(url, user="fritz", password="secret")
             assert result == "[1]", result
 
             result = http_get(url, output_file="a")
@@ -449,7 +507,7 @@ def io_operations():
         assert is_file(file_c), file_c
 
         file_d = write("d", "front@middle@@middle@back")
-        path = replace_in_file(file_d, "@middle@", "M", count=1)
+        path = string_replace_file(file_d, "@middle@", "M", count=1)
         result = read(path)
         assert result == "frontM@middle@back", result
 
@@ -489,6 +547,10 @@ def json_operations():
         assert input_data == parsed_data, (input_data, parsed_data)
         assert json == emitted_json, (json, emitted_json)
 
+        with expect_output(equals=emitted_json) as out:
+            with open(out, "w") as f:
+                print_json(input_data, file=f, end="")
+
 @test
 def link_operations():
     with working_dir():
@@ -503,7 +565,7 @@ def link_operations():
 @test
 def logging_operations():
     error("Error!")
-    warn("Warning!")
+    warning("Warning!")
     notice("Take a look!")
     notice(123)
     debug("By the way")
@@ -515,7 +577,10 @@ def logging_operations():
     with expect_error():
         fail("Error!")
 
-    for level in ("debug", "notice", "warn", "error"):
+    with expect_error():
+        fail("Error! {}", "Let me elaborate")
+
+    for level in ("debug", "notice", "warning", "error"):
         with expect_output(contains="Hello") as out:
             with logging_disabled():
                 with logging_enabled(level=level, output=out):
@@ -525,6 +590,15 @@ def logging_operations():
         with logging_enabled(output=out):
             with logging_disabled():
                 error("Yikes")
+
+    with expect_output(contains="flipper") as out:
+        with logging_enabled(output=out):
+            with logging_context("flipper"):
+                notice("Whhat")
+
+    with logging_context("bip"):
+        with logging_context("boop"):
+            error("It's alarming!")
 
 @test
 def path_operations():
@@ -690,6 +764,9 @@ def process_operations():
 
     run("date", stash=True)
 
+    run(["echo", 1, 2, 3])
+    run(["echo", 1, 2, 3], shell=True)
+
     proc = run(["echo", "hello"], check=False)
     assert proc.exit_code == 0, proc.exit_code
 
@@ -788,10 +865,10 @@ def process_operations():
 
 @test
 def string_operations():
-    result = replace("ab", "a", "b")
+    result = string_replace("ab", "a", "b")
     assert result == "bb", result
 
-    result = replace("aba", "a", "b", count=1)
+    result = string_replace("aba", "a", "b", count=1)
     assert result == "bba", result
 
     result = remove_prefix(None, "xxx")
@@ -865,6 +942,9 @@ def string_operations():
     decoded_result = url_decode(encoded_result)
     assert decoded_result == "abc=123&yeah!", decoded_result
 
+    result = parse_url("http://example.net/index.html")
+    assert result.hostname == "example.net"
+
 @test
 def temp_operations():
     system_temp_dir = get_system_temp_dir()
@@ -904,6 +984,7 @@ def test_operations():
         with working_module_path("src"):
             import chucker
             import chucker.tests
+            import chucker.moretests
 
             print_tests(chucker.tests)
 
@@ -925,6 +1006,9 @@ def test_operations():
                 with expect_error():
                     run_tests(chucker.tests, enable="*badbye*", fail_fast=True, verbose=verbose)
 
+                with expect_error():
+                    run_tests([chucker.tests, chucker.moretests], enable="*badbye2*", fail_fast=True, verbose=verbose)
+
                 with expect_exception(KeyboardInterrupt):
                     run_tests(chucker.tests, enable="keyboard-interrupt", verbose=verbose)
 
@@ -944,6 +1028,7 @@ def test_operations():
                 PlanoTestCommand(chucker.tests).main(args)
 
             run_command("--verbose")
+            run_command("--quiet")
             run_command("--list")
 
             with expect_system_exit():
@@ -970,10 +1055,42 @@ def time_operations():
 
     assert get_time() - start_time > TINY_INTERVAL
 
-    with expect_system_exit():
-        with start("sleep 10"):
-            from plano import _default_sigterm_handler
-            _default_sigterm_handler(_signal.SIGTERM, None)
+    start_datetime = get_datetime()
+
+    sleep(TINY_INTERVAL)
+
+    assert get_datetime() - start_datetime > _datetime.timedelta(seconds=TINY_INTERVAL)
+
+    timestamp = format_timestamp()
+    result = parse_timestamp(timestamp)
+    assert format_timestamp(result) == timestamp
+
+    result = parse_timestamp(None)
+    assert result is None
+
+    earlier = get_datetime()
+    result = format_date()
+    later = _datetime.datetime.strptime(result, "%d %B %Y")
+    later = later.replace(tzinfo=_datetime.timezone.utc)
+    assert later - earlier < _datetime.timedelta(days=1)
+
+    now = get_datetime()
+    result = format_date(now)
+    assert result == f"{now.day} {now.strftime('%B')} {now.strftime('%Y')}"
+
+    now = get_datetime()
+    result = format_time()
+    later = _datetime.datetime.strptime(result, "%H:%M:%S")
+    later = later.replace(tzinfo=_datetime.timezone.utc)
+    assert later - earlier < _datetime.timedelta(seconds=1)
+
+    now = get_datetime()
+    result = format_time(now)
+    assert result == f"{now.hour}:{now.strftime('%M')}:{now.strftime('%S')}"
+
+    now = get_datetime()
+    result = format_time(now, precision="minute")
+    assert result == f"{now.hour}:{now.strftime('%M')}"
 
     result = format_duration(0.1)
     assert result == "0.1s", result
@@ -989,6 +1106,11 @@ def time_operations():
 
     result = format_duration(3600)
     assert result == "1h", result
+
+    with expect_system_exit():
+        with start("sleep 10"):
+            from plano import _default_sigterm_handler
+            _default_sigterm_handler(_signal.SIGTERM, None)
 
     with Timer() as timer:
         sleep(TINY_INTERVAL)
@@ -1083,19 +1205,35 @@ def yaml_operations():
         assert input_data == parsed_data, (input_data, parsed_data)
         assert yaml == emitted_yaml, (yaml, emitted_yaml)
 
+        with expect_output(equals=emitted_yaml) as out:
+            with open(out, "w") as f:
+                print_yaml(input_data, file=f, end="")
+
+@command
+def prancer():
+    notice("Base prancer")
+
+@command
+def vixen():
+    prancer()
+
 @test
 def plano_command():
     with working_dir():
         PlanoCommand().main([])
 
+    PlanoCommand(_sys.modules[__name__]).main([])
+
+    PlanoCommand().main(["-m", "plano.test"])
+
+    with expect_system_exit():
+        PlanoCommand().main(["-m", "nosuchmodule"])
+
     with working_dir():
-        write("Planofile", "garbage")
+        write(".plano.py", "garbage")
 
         with expect_system_exit():
             PlanoCommand().main([])
-
-    with expect_system_exit():
-        PlanoCommand("no-such-file").main([])
 
     with expect_system_exit():
         PlanoCommand().main(["-f", "no-such-file"])
@@ -1106,8 +1244,6 @@ def plano_command():
     with test_project():
         run_command()
         run_command("--help")
-        run_command("--quiet")
-        run_command("--init-only")
 
         with expect_system_exit():
             run_command("no-such-command")
@@ -1119,6 +1255,8 @@ def plano_command():
             run_command("--help", "no-such-command")
 
         run_command("extended-command", "a", "b", "--omega", "z")
+        run_command("extended-command", "a", "b", "--omega", "z", "--verbose")
+        run_command("extended-command", "a", "b", "--omega", "z", "--quiet")
 
         with expect_system_exit():
             run_command("echo")
@@ -1157,6 +1295,20 @@ def plano_command():
         result = read_json("balderdash.json")
         assert result == ["bunk", "malarkey", "bollocks"], result
 
+        run_command("splasher,balderdash", "claptrap")
+        result = read_json("splasher.json")
+        assert result == [1], result
+        result = read_json("balderdash.json")
+        assert result == ["claptrap", "malarkey", "rubbish"], result
+
+        with expect_system_exit():
+            run_command("no-such-command,splasher")
+
+        with expect_system_exit():
+            run_command("splasher,no-such-command-nope")
+
+        run_command("dasher", "alpha", "--beta", "123")
+
         # Gamma is an unexpected arg
         with expect_system_exit():
             run_command("dasher", "alpha", "--gamma", "123")
@@ -1170,30 +1322,18 @@ def plano_command():
         run_command("vixen")
         assert exists("prancer.json")
 
-@command
-def prancer():
-    notice("Base prancer")
+        with expect_system_exit():
+            run_command("no-parent")
 
-@command
-def vixen():
-    prancer()
+        run_command("feta", "--spinach", "oregano")
+        result = read_json("feta.json")
+        assert result == "oregano"
 
-@test
-def planosh_command():
-    with working_dir():
-        write("script1", "garbage")
+        run_command("invisible")
+        result = read_json("invisible.json")
+        assert result == "nothing"
 
-        with expect_exception(NameError):
-            PlanoShellCommand().main(["script1"])
 
-        write("script2", "print_env()")
-
-        PlanoShellCommand().main(["script2"])
-
-        PlanoShellCommand().main(["--command", "print_env()"])
-
-    with expect_system_exit():
-        PlanoShellCommand().main(["no-such-file"])
 
 def main():
     PlanoTestCommand(_sys.modules[__name__]).main()

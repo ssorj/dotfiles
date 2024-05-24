@@ -57,3 +57,14 @@ def process_error():
 @test(disabled=True)
 def system_exit_():
     exit(1)
+
+def test_widget(message):
+    print(message)
+
+for message in "hi", "lo", "in between":
+    add_test(f"message-{message}", test_widget, message)
+
+@test(disabled=True)
+def badbye2():
+    print("Badbye 2")
+    assert False
