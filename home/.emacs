@@ -27,6 +27,8 @@
 (put 'erase-buffer 'disabled nil)
 (put 'narrow-to-region 'disabled nil)
 
+(setq-default truncate-lines t)
+
 ;; Keyboard shortcuts
 
 (global-set-key (kbd "C-c t") #'toggle-truncate-lines)
@@ -85,11 +87,11 @@
 (autoload 'markdown-mode "markdown-mode")
 (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
 
-;; AsciiDoc
+;; ;; AsciiDoc
 
-(load-file "~/.emacs.d/doc-mode.el")
-(autoload 'doc-mode "doc-mode")
-(add-to-list 'auto-mode-alist '("\\.adoc\\'" . doc-mode))
+;; (load-file "~/.emacs.d/doc-mode.el")
+;; (autoload 'doc-mode "doc-mode")
+;; (add-to-list 'auto-mode-alist '("\\.adoc\\'" . doc-mode))
 
 ;; Shell
 
