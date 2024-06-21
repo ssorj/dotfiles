@@ -3,13 +3,11 @@
              '("melpa" . "https://melpa.org/packages/") t)
 (package-initialize)
 
-(require 'rust-mode)
-
 (setq custom-file "~/.emacs.d/custom.el")
 (load custom-file :noerror)
 
 (load-theme 'deeper-blue)
-(set-face-attribute 'default nil :family "JetBrains Mono" :height 130)
+(set-face-attribute 'default nil :family "GitLab Mono" :height 130)
 (set-face-bold-p 'bold nil)
 
 (menu-bar-mode -1)
@@ -71,8 +69,6 @@
 
 (setq python-indent-guess-indent-offset t)
 (setq python-indent-guess-indent-offset-verbose nil)
-(add-to-list 'auto-mode-alist '("Planofile\\'" . python-mode))
-(add-to-list 'auto-mode-alist '("\\.planofile\\'" . python-mode))
 
 ;; C and C++
 
