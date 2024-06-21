@@ -30,6 +30,11 @@
    - Suspend after 2 hours
  - Gnome sound
    - Turn off sound effects
+ - Install fonts I like
+   - https://gitlab-org.gitlab.io/frontend/fonts/fonts/GitLabSans.otf
+   - https://gitlab-org.gitlab.io/frontend/fonts/fonts/GitLabSans-Italic.otf
+   - https://gitlab-org.gitlab.io/frontend/fonts/fonts/GitLabMono.ttf (Where are the .otf versions of these?)
+   - https://gitlab-org.gitlab.io/frontend/fonts/fonts/GitLabMono-Italic.ttf
 
 ## Zoom settings for the big monitor
 
