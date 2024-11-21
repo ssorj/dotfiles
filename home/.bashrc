@@ -39,6 +39,8 @@ alias py="python3 -S"
 alias s="rg --hidden --fixed-strings --files-with-matches --count"
 alias sm="rg --hidden --fixed-strings"
 
+alias cdc="cd ~/code"
+
 alias gd="git diff --minimal --ignore-space-at-eol"
 alias gl="git log --format='tformat:%C(auto)%h  %C(blue)%<(8,trunc)%al  %<(14,trunc)%cr  %C(auto)%d %C(auto)%s' -n 20"
 alias gp="git pull --autostash"
@@ -86,7 +88,6 @@ alias kcl="echo kubectl logs; echo; kubectl logs"
 alias kcs="echo kubectl get services; echo; kubectl get services"
 alias kcd="echo kubectl get deployments; echo; kubectl get deployments"
 alias kcp="echo kubectl get pods; echo; kubectl get pods"
-alias kci='echo kubectl get services,deployments,pods; echo; kubectl get services,deployments,pods'
 alias kce="echo kubectl get events --sort-by=.lastTimestamp; echo; kubectl get events --sort-by=.lastTimestamp"
 
 function kcn {
@@ -95,6 +96,13 @@ function kcn {
     fi
 
     kubectl config view --minify --output 'jsonpath={..namespace}'; echo
+}
+
+function kci {
+    echo -n "Namespace: "
+    kubectl config view --minify --output 'jsonpath={..namespace}'; echo; echo
+
+    kubectl get services,deployments,pods
 }
 
 function kcsh {

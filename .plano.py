@@ -104,7 +104,11 @@ def configure_gnome():
 
     # Key bindings for standard launchers
 
-    run("gsettings set org.gnome.settings-daemon.plugins.media-keys www '[\"<Super>B\"]'")
+    run("gsettings set org.gnome.settings-daemon.plugins.media-keys www '[\"<Super>b\"]'")
+
+    # Move this binding out of the way of the Python launcher
+
+    run("gsettings set org.gnome.mutter.keybindings switch-monitor '[\"<Super><Shift>p\"]'")
 
     # Key bindings for custom launchers
 
@@ -112,17 +116,22 @@ def configure_gnome():
         {
             "name": "Terminal",
             "command": "/usr/bin/gnome-terminal",
-            "binding": "<Super>T",
+            "binding": "<Super>t",
         },
         {
             "name": "Editor",
             "command": "/usr/bin/emacs",
-            "binding": "<Super>E",
+            "binding": "<Super>e",
         },
         {
             "name": "Files",
             "command": "/usr/bin/nautilus",
-            "binding": "<Super>F",
+            "binding": "<Super>f",
+        },
+        {
+            "name": "Python",
+            "command": "/usr/bin/gnome-terminal -- python -q",
+            "binding": "<Super>p",
         },
     ]
 

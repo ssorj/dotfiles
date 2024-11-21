@@ -7,7 +7,7 @@
 (load custom-file :noerror)
 
 (load-theme 'deeper-blue)
-(set-face-attribute 'default nil :family "GitLab Mono" :height 130)
+(set-face-attribute 'default nil :family "GitLab Mono" :height 120)
 (set-face-bold-p 'bold nil)
 
 (menu-bar-mode -1)
