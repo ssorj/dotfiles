@@ -38,7 +38,6 @@ def install_packages():
         "emacs",
         "emacs-goodies",
         "emacs-yaml-mode",
-        "eza",
         "fedora-workstation-repositories",
         "git",
         "gnome-tweak-tool",
@@ -52,8 +51,6 @@ def install_packages():
     ]
 
     run(f"sudo dnf -y install {' '.join(packages)}")
-
-    run("sudo dnf -y config-manager --set-enabled google-chrome")
 
     try:
         # This currently fails on arm
@@ -115,7 +112,7 @@ def configure_gnome():
     launchers = [
         {
             "name": "Terminal",
-            "command": "/usr/bin/gnome-terminal",
+            "command": "/usr/bin/ptyxis",
             "binding": "<Super>t",
         },
         {
@@ -130,7 +127,7 @@ def configure_gnome():
         },
         {
             "name": "Python",
-            "command": "/usr/bin/gnome-terminal -- python -q",
+            "command": "/usr/bin/ptyxis -- python -q",
             "binding": "<Super>p",
         },
     ]
