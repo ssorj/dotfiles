@@ -16,10 +16,11 @@ _prompt_command() {
     fi
 }
 
-export EDITOR=emacs
 export PATH=$HOME/bin:$HOME/.local/bin:$HOME/.local/sbin:$HOME/.local/node_modules/.bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:.
+export EDITOR=emacs
 export NODE_PATH=$HOME/.local/lib/node_modules:/usr/lib/node_modules:$NODE_PATH
 export MAKEOPTS="-j $(nproc)"
+export PYTHONPYCACHEPREFIX=$HOME/.cache/python
 
 if [[ $TERM == dumb && $INSIDE_EMACS ]]; then
     export TERM=dumb-emacs-ansi COLORTERM=1
@@ -35,11 +36,9 @@ alias ls="ls --color"
 alias m="make"
 alias p="pwd"
 alias pl="plano"
-alias py="python3 -S"
+alias py="python -q"
 alias s="rg --hidden --fixed-strings --files-with-matches --count"
 alias sm="rg --hidden --fixed-strings"
-
-alias cdc="cd ~/code"
 
 alias gd="git diff --minimal --ignore-space-at-eol"
 alias gl="git log --format='tformat:%C(auto)%h  %C(blue)%<(8,trunc)%al  %<(14,trunc)%cr  %C(auto)%d %C(auto)%s' -n 20"
@@ -79,12 +78,20 @@ function mdcd {
     fi
 }
 
+function cdc {
+    if [[ $1 ]]; then
+        cd ~/code/$1
+    else
+        cd ~/code
+    fi
+}
+
 alias mk="minikube"
 alias sk="skupper"
 alias skp="skupper --platform podman"
 
 alias kc="kubectl"
-alias kcl="echo kubectl logs; echo; kubectl logs"
+alias kcl="echo kubectl logs; echo; kubectl logs --all-containers --all-pods"
 alias kcs="echo kubectl get services; echo; kubectl get services"
 alias kcd="echo kubectl get deployments; echo; kubectl get deployments"
 alias kcp="echo kubectl get pods; echo; kubectl get pods"
@@ -106,7 +113,12 @@ function kci {
 }
 
 function kcsh {
-    kubectl exec -it "$1" -- /bin/bash
+    kubectl exec -it "$1" -- /bin/sh
+}
+
+function kctb {
+    kubectl run kube-toolbox --image=qbituniverse/kube-toolbox
+    kubectl exec -it kube-toolbox -- /bin/ash
 }
 
 function kubecfg {

@@ -34,6 +34,7 @@
 (global-set-key (kbd "C-c u") #'uncomment-region)
 (global-set-key (kbd "C-c s") #'sort-lines)
 (global-set-key (kbd "C-c p") #'ispell-word)
+(global-set-key (kbd "C-c i") #'indent-region)
 
 ;; Whitespace
 
@@ -100,5 +101,5 @@
 (setq-default same-window-buffer-names '("sh" "sh2" "sh3" "sh4"))
 
 (set-face-attribute 'comint-highlight-prompt nil :inherit nil)
-(setq ansi-color-names-vector ["black" "tomato" "PaleGreen2" "gold1" "DeepSkyBlue1" "MediumOrchid1" "cyan" "white"])
-(setq ansi-color-map (ansi-color-make-color-map))
+;; (setq ansi-color-names-vector ["black" "tomato" "PaleGreen2" "gold1" "blue2" "MediumOrchid1" "cyan" "white"])
+;; (setq ansi-color-map (ansi-color-make-color-map))

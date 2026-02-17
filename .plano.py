@@ -77,6 +77,7 @@ def install_config():
         # XXX Do for each .<file> instead
         install_link(".bashrc")
         install_link(".config/ghost/config.py")
+        install_link(".config/ghosttty/config")
         install_link(".config/systemd/user/flapjack.service")
         install_link(".emacs")
         install_link(".emacs.d/doc-mode.el")
@@ -117,7 +118,7 @@ def configure_gnome():
         },
         {
             "name": "Editor",
-            "command": "/usr/bin/emacs",
+            "command": "/usr/bin/emacs -mm",
             "binding": "<Super>e",
         },
         {

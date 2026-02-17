@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Open in Emacs
+Exec=/home/jross/code/dotfiles/open-in-emacs.sh %u
+Type=Application
+Terminal=false
+MimeType=x-scheme-handler/editor

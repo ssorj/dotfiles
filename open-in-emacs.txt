@@ -1,0 +1,1 @@
+# desktop-file-install --dir ~/.local/share/applications --rebuild-mime-info-cache open-in-emacs.desktop
