@@ -113,7 +113,7 @@ def configure_gnome():
     launchers = [
         {
             "name": "Terminal",
-            "command": "/usr/bin/ptyxis",
+            "command": "/usr/bin/ptyxis --new-window",
             "binding": "<Super>t",
         },
         {
@@ -123,12 +123,12 @@ def configure_gnome():
         },
         {
             "name": "Files",
-            "command": "/usr/bin/nautilus",
+            "command": "/usr/bin/nautilus --new-window",
             "binding": "<Super>f",
         },
         {
             "name": "Python",
-            "command": "/usr/bin/ptyxis -- python -q",
+            "command": "/usr/bin/ptyxis --new-window -- python -q",
             "binding": "<Super>p",
         },
     ]
