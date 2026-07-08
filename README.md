@@ -15,13 +15,10 @@
  - Configure sudo
  - Terminal preferences
    - Hide the scroll bar
-   - Ctrl+V (no Shift) for paste
  - Copy SSH keys
- - Irssi
-   - "/set completion_char ,"
- - Gnome tweak tool
+ - Gnome extensions
    - Launch new instance
-   - Show day of week in clock
+ - Gnome tweak tool
    - Make Caps Lock an additional Ctrl
  - Gnome privacy settings
    - Disable screen lock

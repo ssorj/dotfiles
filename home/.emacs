@@ -84,12 +84,6 @@
 (autoload 'markdown-mode "markdown-mode")
 (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
 
-;; ;; AsciiDoc
-
-;; (load-file "~/.emacs.d/doc-mode.el")
-;; (autoload 'doc-mode "doc-mode")
-;; (add-to-list 'auto-mode-alist '("\\.adoc\\'" . doc-mode))
-
 ;; Shell
 
 (setenv "PAGER" "cat")
@@ -101,5 +95,6 @@
 (setq-default same-window-buffer-names '("sh" "sh2" "sh3" "sh4"))
 
 (set-face-attribute 'comint-highlight-prompt nil :inherit nil)
-;; (setq ansi-color-names-vector ["black" "tomato" "PaleGreen2" "gold1" "blue2" "MediumOrchid1" "cyan" "white"])
-;; (setq ansi-color-map (ansi-color-make-color-map))
+
+(custom-set-faces
+ '(ansi-color-blue ((t (:foreground "deep sky blue")))))
