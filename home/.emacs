@@ -19,6 +19,7 @@
 (which-function-mode t)
 
 (setq inhibit-startup-message t)
+(setq confirm-kill-processes nil)
 (setq uniquify-buffer-name-style 'forward)
 
 (put 'downcase-region 'disabled nil)

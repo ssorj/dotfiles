@@ -139,3 +139,10 @@ umask 002
 
 bind '"\ep": previous-history' 2> /dev/null
 bind '"\en": next-history' 2> /dev/null
+
+
+# Added by Antigravity CLI installer
+export PATH="/home/jross/.local/bin:$PATH"
+
+# opencode
+export PATH=/home/jross/.opencode/bin:$PATH

@@ -3,7 +3,7 @@ Description=Flapjack
 
 [Service]
 WorkingDirectory=%h/code/flapjack
-ExecStart=%h/code/flapjack/plano serve --port 60006
+ExecStart=%h/code/flapjack/server/target/release/server localhost:60006 output
 
 [Install]
 WantedBy=default.target
